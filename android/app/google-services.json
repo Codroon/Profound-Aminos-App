@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1066867478619",
+    "project_id": "ordermanagementauth",
+    "storage_bucket": "ordermanagementauth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066867478619:android:f58754a4cc952d2f33af7e",
+        "android_client_info": {
+          "package_name": "com.profound_aminos.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIMJH_KHR_nSwR9NrEzGoOAhNV8IG_JBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
