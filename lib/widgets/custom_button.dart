@@ -56,21 +56,14 @@ class CustomButton extends StatelessWidget {
                 : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Spacing between icon and text
                     Text(
                       text,
                       style:
                           textStyle ??
                           const TextStyle(
-                            fontSize: 16,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
-                    ),
-                    const SizedBox(width: 10),
-                    Icon(
-                      Icons.arrow_circle_right_rounded,
-                      color: textColor ?? Colors.white,
-                      size: 24,
                     ),
                   ],
                 ),

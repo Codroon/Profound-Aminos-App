@@ -10,9 +10,12 @@ class FetchProducts extends ProductEvent {
   final int page;
   final int perPage;
   final String? searchTerm;
-  const FetchProducts({this.page = 1, this.perPage = 20, this.searchTerm});
+  final bool forceRefresh;
+  
+  const FetchProducts({this.page = 1, this.perPage = 20, this.searchTerm, this.forceRefresh = false});
+  
   @override
-  List<Object?> get props => [page, perPage, searchTerm];
+  List<Object?> get props => [page, perPage, searchTerm, forceRefresh];
 }
 
 class CreateProduct extends ProductEvent {

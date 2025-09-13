@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/gorgias_dashboard.dart';
-import 'package:woo_management_app/features/home/presentation/pages/gorgias_dashboard.dart';
 import 'package:woo_management_app/features/products/presentation/pages/woo_all_products_page.dart';
 import 'package:woo_management_app/features/products/presentation/pages/woo_product_performance_page.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/utils/motion_toast.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -8,6 +9,8 @@ import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
 import '../../../home/presentation/pages/bottom_nav_page.dart';
+import '../../../../core/services/firestore_credentials_service.dart';
+import '../../../../core/services/crediential_storage_service.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -20,6 +23,8 @@ class _SetupScreenState extends State<SetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final creds = <String, String>{};
   bool _credentialsTested = false;
+  final FirestoreCredentialsService _firestoreService =
+      FirestoreCredentialsService();
 
   void _onTestAndSave(BuildContext context) {
     if (_formKey.currentState!.validate()) {
@@ -31,6 +36,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Widget _buildField(String label, String keyName, {bool obscure = false}) {
     return TextFormField(
+      initialValue: creds[keyName],
       onTapOutside: (_) {
         FocusScope.of(context).unfocus();
       },
@@ -137,6 +143,91 @@ class _SetupScreenState extends State<SetupScreen> {
                           'Gorgias Subdomain (e.g. yourbrand)',
                           'gorgiasSub',
                         ),
+                        _buildField('Gorgias Username', 'gorgiasUserName'),
+
+                        // ReachShip Fields
+                        const SizedBox(height: 20),
+                        Text(
+                          'ReachShip Credentials',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildField('ReachShip Client ID', 'reachProClientId'),
+                        _buildField(
+                          'ReachShip Client Secret',
+                          'reachProSecret',
+                          obscure: true,
+                        ),
+                        _buildField(
+                          'ReachShip Client ID (Sand)',
+                          'reachClientIdSand',
+                        ),
+                        _buildField(
+                          'ReachShip Secret (Sand)',
+                          'reachSecretSand',
+                          obscure: true,
+                        ),
+                        _buildField('ReachShip Environment', 'reachShipEnv'),
+
+                        const SizedBox(height: 30),
+
+                        // Firestore Options
+                        Text(
+                          'Cloud Backup Options',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                    isLoading
+                                        ? null
+                                        : () => _downloadFromFirestore(context),
+                                icon: Icon(
+                                  Iconsax.cloud_drizzle_bold,
+                                  size: 18,
+                                ),
+                                label: Text('Load from Cloud'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: BorderSide(color: AppColors.primary),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                    isLoading
+                                        ? null
+                                        : () => _uploadToFirestore(context),
+                                icon: Icon(Iconsax.cloud_add_bold, size: 18),
+                                label: Text('Save to Cloud'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: BorderSide(color: AppColors.primary),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
                         const SizedBox(height: 20),
                         CustomButton(
                           text: isLoading ? 'Loading...' : 'Test & Save',
@@ -152,6 +243,109 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _downloadFromFirestore(BuildContext context) async {
+    try {
+      _showLoadingDialog(context, 'Loading credentials from cloud...');
+
+      await _firestoreService.downloadCredentialsFromFirestore();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      // Reload the form with downloaded credentials
+      final storage = CredentialStorageService();
+      final downloadedCreds = await storage.getCredentials();
+
+      setState(() {
+        creds.clear();
+        downloadedCreds.forEach((key, value) {
+          if (value != null) creds[key] = value;
+        });
+      });
+
+      ToastUtils.showSuccessToast(
+        context,
+        title: 'Success',
+        description: 'Credentials loaded from cloud successfully!',
+      );
+
+      // Rebuild form with new values
+      _formKey.currentState?.reset();
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      ToastUtils.showErrorToast(
+        context,
+        title: 'Download Failed',
+        description: 'Failed to load credentials from cloud: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> _uploadToFirestore(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) {
+      ToastUtils.showErrorToast(
+        context,
+        title: 'Validation Error',
+        description: 'Please fill in all required fields before uploading.',
+      );
+      return;
+    }
+
+    _formKey.currentState!.save();
+
+    try {
+      _showLoadingDialog(context, 'Saving credentials to cloud...');
+
+      // Save locally first
+      final storage = CredentialStorageService();
+      await storage.saveCredentials(creds);
+
+      // Then upload to Firestore
+      await _firestoreService.uploadCredentialsToFirestore();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      ToastUtils.showSuccessToast(
+        context,
+        title: 'Success',
+        description: 'Credentials saved to cloud successfully!',
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      ToastUtils.showErrorToast(
+        context,
+        title: 'Upload Failed',
+        description: 'Failed to save credentials to cloud: ${e.toString()}',
+      );
+    }
+  }
+
+  void _showLoadingDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

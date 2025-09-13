@@ -120,4 +120,28 @@ class CacheManager {
       }
     }
   }
+
+  // Additional methods for compatibility with GorgiasRepository
+  Future<Map<String, dynamic>?> getData(String key) async {
+    return await getCachedData<Map<String, dynamic>>(key);
+  }
+
+  // Future<void> cacheData(String key, Map<String, dynamic> data, {Duration? duration}) async {
+  //   await setCachedData(key, data, duration: duration);
+  // }
+
+  Future<void> removeData(String key) async {
+    await removeCachedData(key);
+  }
+
+  Future<void> clearCacheByPrefix(String prefix) async {
+    final keys = _prefs.getKeys();
+    final prefixedKeys = keys.where(
+      (key) => key.startsWith('${StorageConstants.cacheBox}_$prefix'),
+    );
+
+    for (final key in prefixedKeys) {
+      await _prefs.remove(key);
+    }
+  }
 }

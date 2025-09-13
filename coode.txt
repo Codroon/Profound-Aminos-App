@@ -1,0 +1,566 @@
+ReachShip Multi-Carrier Shipping API (Version 1.0)
+Overview
+The ReachShip Multi-Carrier Shipping API is a flexible, modern, and easy-to-use API that aggregates various shipping APIs into a single interface. It provides multi-carrier shipping functionality, supporting both regional and international carriers. By integrating with your eCommerce store, ReachShip enables access to essential shipping features, including:
+
+Obtaining shipping rates
+Generating and printing shipping labels
+Scheduling pickups
+Tracking shipments
+Managing carrier credentials
+
+The API is designed for seamless integration, supported by excellent developer resources.
+
+API Endpoints
+1. API Authorization
+Obtain an OAuth token for API transactions. The token expires every 30 days and must be regenerated.
+
+Method: GET
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/oauth/token
+Production: https://api.reachship.com/production/v1/oauth/token
+
+
+Query Parameters:
+
+grant_type (string, required): Set to "client_credentials"
+client_id (string, 34 characters): Client ID from ReachShip dashboard (e.g., Client_ID)
+client_secret (string, 32 characters): Client Secret from ReachShip dashboard (e.g., Client_Secret)
+
+
+Request Body: application/x-www-form-urlencoded
+Responses:
+
+200 Success: Returns { "access_token": "reachship access token", "token_type": "bearer" }
+400 Missing Parameters
+422 Invalid Credentials
+500 Server Error
+
+
+Request Sample:
+plaintextgrant_type=client_credentials&client_id=Client_ID&client_secret=Client_secret
+
+
+
+2. Rates and Transit Times
+Retrieve pre-ship rating information to determine shipping costs.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/rates
+Production: https://api.reachship.com/production/v1/rates
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token (e.g., Bearer access_token)
+
+
+Request Body: application/json
+
+rates_options (object): Optional rate options
+shipment (object, required): Includes ship_to, ship_from, and packages arrays
+
+
+Responses:
+
+200 Success: Returns an array of rate objects, e.g.:
+json[
+  {
+    "companyName": "FEDEX",
+    "serviceName": "FedEx First Overnight®",
+    "estimatedDelivery": "NA",
+    "totalBaseCharge": 137.92,
+    "totalChargeWithTaxes": 164.81,
+    "currency": "USD",
+    "serviceCode": "FIRST_OVERNIGHT",
+    "reachshipAccountIdentifier": "fedex account 1",
+    "extraCharges": {}
+  }
+]
+
+400 Bad Request
+422 Failure
+500 Server Error
+
+
+Request Sample:
+json{
+  "shipment": {
+    "ship_to": {},
+    "ship_from": {},
+    "packages": []
+  }
+}
+
+
+
+3. Create Shipment
+Process and submit shipping requests to generate a shipping label.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/print-label
+Production: https://api.reachship.com/production/v1/print-label
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token (e.g., Bearer access_token)
+
+
+Request Body: application/json
+
+carrier (object, required): Includes name, service_code, and account_name
+additional_options (object): Optional settings
+shipment (object, non-empty): Includes ship_to, ship_from, ship_date, and packages
+shipments (array of objects, non-empty): Optional
+order (object): Optional
+order_and_pickup (object): Optional
+label (object): Optional
+
+
+Responses:
+
+200 Success
+
+
+Request Sample (UPS Example):
+json{
+  "carrier": {
+    "name": "UPS",
+    "service_code": "03",
+    "account_name": "ups-account-01"
+  },
+  "shipment": {
+    "ship_to": {},
+    "ship_from": {},
+    "ship_date": "2021-09-01",
+    "packages": []
+  }
+}
+
+
+
+4. Create Manifest
+Process and submit requests to create a manifest.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/create-manifest
+Production: https://api.reachship.com/production/v1/create-manifest
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier (object): Carrier details
+manifest_options (object, required): Manifest-specific options
+
+
+Responses:
+
+200 Success
+
+
+Request Sample:
+json{
+  "carrier": {
+    "name": "AUSPOST_STARTRACK",
+    "account_name": "Test Account Name"
+  },
+  "manifest_options": {
+    "auspost_startrack": {}
+  }
+}
+
+
+
+5. Delete Shipments
+Delete specified shipments.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/delete-shipments
+Production: https://api.reachship.com/production/v1/delete-shipments
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier_name (string, required): Enum: AUSPOST_MYPOST, FEDEX, UPS, AUSPOST_STARTRACK, AUSPOST_EPARCEL, SENDLE, USPS
+shipment_ids (array of strings, non-empty): Shipment IDs to delete
+tracking_ids (array of strings, non-empty): Tracking IDs
+order_ids (array of strings, non-empty): Sendle order IDs
+account_name (string): Optional; defaults to primary carrier account
+
+
+Responses:
+
+200 Success
+
+
+Request Sample (Australia Post - MyPost):
+json{
+  "carrier_name": "AUSPOST_MYPOST",
+  "shipment_ids": ["shipment_id_1", "shipment_id_2"]
+}
+
+
+
+6. Schedule Pickup
+Schedule a carrier pickup.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/schedule-pickup
+Production: https://api.reachship.com/production/v1/schedule-pickup
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+shipper (object): Shipper details
+carrier (object): Carrier details
+pickup_window (object): Date, ready time, and close time
+pickup_options (object): Optional pickup settings
+packages (array of objects): Package details
+tracking_ids (array of strings, non-empty, unique): Tracking IDs
+destination_country_code (string): Required for UPS; ISO country code
+auspost_mypost_create_pickup (object): Optional
+usps_create_pickup (object): Optional
+
+
+Responses:
+
+200 Success
+
+
+Request Sample:
+json{
+  "carrier": {
+    "name": "UPS",
+    "service_code": "03"
+  },
+  "shipper": {
+    "name": "Bob",
+    "email": "bob@gmail.com",
+    "phone": {},
+    "address_line_1": "5501 N",
+    "address_line_2": "Portland Ave",
+    "city_locality": "Oklahoma City",
+    "state_province": "OK",
+    "postal_code": "73112",
+    "country_code": "US"
+  },
+  "packages": [{}],
+  "pickup_window": {
+    "date": "2021-08-31",
+    "ready_time": "09:00",
+    "close_time": "19:00"
+  },
+  "tracking_ids": ["1001100100"]
+}
+
+
+
+7. Cancel Pickup
+Cancel a scheduled pickup.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/cancel-pickup
+Production: https://api.reachship.com/production/v1/cancel-pickup
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier_name (string, required): Enum: DHL_EXPRESS, UPS, USPS, FEDEX
+account_name (string): Optional
+dhl_express (object): DHL-specific details
+usps (object): USPS-specific details
+ups (object): UPS-specific details
+fedex (object): FedEx-specific details
+
+
+Responses:
+
+200 Success
+
+
+Request Sample:
+json{
+  "carrier_name": "DHL_EXPRESS",
+  "dhl_express": {
+    "requestor_name": "Alice",
+    "origin_service_area": "MAD",
+    "country_code": "ES",
+    "region_code": "EU",
+    "pickup_confirmation_number": "ABC100000000000",
+    "pickup_date": "2023-11-02",
+    "cancel_time": "09:55"
+  }
+}
+
+
+
+8. Track Shipment
+Track a shipment by carrier and tracking number.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/track-shipment
+Production: https://api.reachship.com/production/v1/track-shipment
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier_name (string, required): Enum: DHL_EXPRESS, FEDEX, UPS, AUSPOST_MYPOST, AUSPOST_STARTRACK, AUSPOST_EPARCEL, SENDLE, USPS
+tracking_number (string, required): Tracking number
+account_name (string): Optional; defaults to primary carrier account
+
+
+Responses:
+
+200 Success:
+json{
+  "carrier_name": "UPS",
+  "tracking_number": "10xxxxxxxx",
+  "current_status": "IN_TRANSIT",
+  "events": [{}, {}, {}]
+}
+
+
+
+Request Sample:
+json{
+  "carrier_name": "UPS",
+  "tracking_number": "10xxxxxxxx"
+}
+
+
+
+9. Save Carrier Credentials
+Save carrier credentials for API use.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/save-carrier-credentials
+Production: https://api.reachship.com/production/v1/save-carrier-credentials
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier (string, required): Enum: DHL_EXPRESS, FEDEX, UPS, AUSPOST_MYPOST, AUSPOST_STARTRACK, AUSPOST_EPARCEL, SENDLE, USPS
+account_name (string, required, ≥2 characters): Account name
+Carrier-specific credentials (object): e.g., dhl_express_credentials, fedex_credentials, etc.
+
+
+Responses:
+
+200 Success
+
+
+Request Sample:
+json{
+  "carrier": "DHL_EXPRESS",
+  "account_name": "DHL Production Account",
+  "dhl_express_credentials": {
+    "account_number": "YOUR_DHL_ACCOUNT_NUMBER",
+    "site_id": "YOUR_DHL_SITE_ID",
+    "site_password": "YOUR_DHL_SITE_PASSWORD",
+    "is_primary": true
+  }
+}
+
+
+
+10. Update Carrier Credentials
+Update existing carrier credentials.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/update-carrier-credentials
+Production: https://api.reachship.com/production/v1/update-carrier-credentials
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+Same as Save Carrier Credentials
+
+
+Responses:
+
+200 Success
+
+
+Request Sample:
+json{
+  "carrier": "DHL_EXPRESS",
+  "account_name": "DHL Production Account",
+  "dhl_express_credentials": {
+    "account_number": "YOUR_DHL_ACCOUNT_NUMBER",
+    "site_id": "YOUR_DHL_SITE_ID",
+    "site_password": "YOUR_DHL_SITE_PASSWORD",
+    "is_primary": true
+  }
+}
+
+
+
+11. Carrier Credentials Summary
+Retrieve a summary of saved carrier credentials.
+
+Method: GET
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/get-carrier-credentials-summary
+Production: https://api.reachship.com/production/v1/get-carrier-credentials-summary
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Responses:
+
+200 Success
+400 Missing Parameters
+422 Invalid Credentials
+500 Server Error
+
+
+
+
+12. Delete Carrier Credentials
+Delete specified carrier credentials.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/delete-carrier-credentials
+Production: https://api.reachship.com/production/v1/delete-carrier-credentials
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+carrier (string, required): Enum: DHL_EXPRESS, FEDEX, UPS, AUSPOST_MYPOST, AUSPOST_STARTRACK, AUSPOST_EPARCEL, SENDLE, USPS
+account_name (string, required, ≥2 characters): Account name
+alternative_primary_account_name (string, ≥2 characters): Optional; used when deleting a primary account
+
+
+Responses:
+
+200 Success
+400 Missing Parameters
+422 Invalid Credentials
+500 Server Error
+
+
+Request Sample:
+json{
+  "carrier": "DHL_EXPRESS",
+  "account_name": "DHL Production Account"
+}
+
+
+
+13. Recover Shipment URL
+Recover a shipment label URL.
+
+Method: POST
+Endpoint:
+
+Sandbox: https://api.reachship.com/sandbox/v1/recover-shipment-url
+Production: https://api.reachship.com/production/v1/recover-shipment-url
+
+
+Header Parameters:
+
+Authorization (string, required): Bearer token
+
+
+Request Body: application/json
+
+url (string, required): URL of the shipment label
+
+
+Responses:
+
+200 Success
+400 Missing Parameters
+422 Invalid Credentials
+500 Server Error
+
+
+Request Sample:
+json{
+  "url": "https://sandbox-shipments.reachship.com/xxxxxxxxx/xxxxxxxx/sample.pdf"
+}
+
+
+
+Supported Carriers
+The API supports the following carriers:
+
+DHL Express
+FedEx
+UPS
+Australia Post (MyPost, StarTrack, eParcel)
+Sendle
+USPS
+
+
+Integration Notes
+
+Sandbox vs. Production: Use sandbox endpoints for testing and production endpoints for live operations.
+Authorization: All endpoints (except /oauth/token) require a valid Bearer token in the Authorization header.
+Developer Support: ReachShip provides excellent resources for integration. Visit the ReachShip dashboard for Client ID, Client Secret, and additional documentation.
+Token Expiry: OAuth tokens expire every 30 days and must be regenerated using the /oauth/token endpoint.

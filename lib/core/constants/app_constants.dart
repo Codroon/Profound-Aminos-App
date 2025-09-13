@@ -1,7 +1,5 @@
 class AppConstants {
   // API
-  static const String baseUrl = 'https://api.aviator-game.com/api/v1';
-  static const String wsUrl = 'wss://ws.aviator-game.com';
 
   // Storage Keys
   static const String userTokenKey = 'user_token';

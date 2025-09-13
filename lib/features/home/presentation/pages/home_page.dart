@@ -9,6 +9,7 @@ import 'package:woo_management_app/features/auth/presentation/pages/admin_login_
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
 
+import '../../../reach_ship/presentation/pages/reach_ship_main_page.dart';
 import '../widgets/gorgias_card.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/user_avatar_widget.dart';
@@ -28,6 +29,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void initState() {
+    super.initState();
+    // Refresh analytics data when home page is opened
+    context.read<AnalyticsBloc>().add(const FetchAnalytics(0));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -43,23 +51,6 @@ class _HomePageState extends State<HomePage> {
                   UserAvatarWidget(
                     text: 'Profound Aminos',
                     userImage: 'assets/images/profound_icon.png',
-                  ),
-                  Spacer(),
-                  IconButton(
-                    onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AdminLoginPage(),
-                        ),
-                      );
-                    },
-                    icon: Icon(Iconsax.notification_outline),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.more_vert_rounded),
                   ),
                 ],
               ),
@@ -137,7 +128,18 @@ class _HomePageState extends State<HomePage> {
               const Gap(20),
               const CurrentOrdersWidget(),
               const Gap(20),
-              CustomButton(text: 'Tracking', height: 46),
+              CustomButton(
+                text: 'Tracking',
+                height: 46,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReachShipMainPage(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),

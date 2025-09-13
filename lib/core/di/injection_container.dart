@@ -12,13 +12,24 @@ import 'package:woo_management_app/features/word_press/repository/word_press_rep
 import '../services/wordpress_service.dart';
 import '../network/network_info.dart';
 import '../storage/local_storage.dart';
+import 'package:woo_management_app/core/services/data_preload_service.dart';
+
+// Gorgias imports
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
+import 'package:woo_management_app/features/gorgias/repository/gorgias_repository.dart';
+import '../services/gorgias_service.dart';
+import '../services/api_credential_service.dart';
+import '../services/crediential_storage_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+// ReachShip imports
+import 'package:woo_management_app/features/reach_ship/repository/reach_ship_repository.dart';
+import 'package:woo_management_app/features/reach_ship/bloc/bloc.dart';
+import '../services/reach_ship_service.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // BLoCs
-  sl.registerFactory(() => AnalyticsBloc(repository: sl()));
-
   // Repositories
   sl.registerLazySingleton<AnalyticsRepository>(
     () => AnalyticsRepositoryImpl(networkInfo: sl(), cacheManager: sl()),
@@ -29,8 +40,15 @@ Future<void> init() async {
     () => ProductRepositoryImpl(networkInfo: sl(), cacheManager: sl()),
   );
 
-  // Product Bloc
+  // BLoCs
+  sl.registerFactory(() => AnalyticsBloc(repository: sl()));
   sl.registerFactory(() => ProductBloc(repository: sl()));
+  
+  // Register DataPreloadService - commented out as we're handling preloading in App class
+  // sl.registerLazySingleton<DataPreloadService>(() => DataPreloadService(
+  //   analyticsBloc: sl<AnalyticsBloc>(),
+  //   productBloc: sl<ProductBloc>(),
+  // ));
 
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
@@ -55,4 +73,46 @@ Future<void> init() async {
 
   // WordPress Service
   sl.registerLazySingleton<WordpressService>(() => WordpressService());
+
+  // Credential Storage Service
+  sl.registerLazySingleton<CredentialStorageService>(
+    () => CredentialStorageService(),
+  );
+
+  // Gorgias Services
+  sl.registerLazySingleton<ApiService>(() {
+    // For now, provide empty credentials - will be loaded at runtime
+    return ApiService(<String, String>{});
+  });
+  sl.registerLazySingleton<GorgiasService>(() => GorgiasService(sl()));
+
+  // Gorgias Repository
+  sl.registerLazySingleton<GorgiasRepository>(
+    () => GorgiasRepositoryImpl(
+      networkInfo: sl(),
+      cacheManager: sl(),
+      apiService: sl(),
+      gorgiasService: sl(),
+    ),
+  );
+
+  // Gorgias Bloc
+  sl.registerFactory(
+    () => GorgiasBloc(repository: sl(), connectivity: Connectivity()),
+  );
+
+  // ReachShip Service Factory
+  sl.registerLazySingleton<Future<ReachShipService>>(() {
+    return ReachShipService.withCredentials(sl<CredentialStorageService>());
+  });
+
+  // ReachShip Repository
+  sl.registerLazySingleton<ReachShipRepository>(
+    () => ReachShipRepository(reachShipService: sl()),
+  );
+
+  // ReachShip Bloc
+  sl.registerFactory(
+    () => ReachShipBloc(repository: sl(), connectivity: Connectivity()),
+  );
 }

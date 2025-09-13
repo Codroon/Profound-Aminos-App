@@ -1,14 +1,93 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
+import 'package:woo_management_app/features/gorgias/models/gorgias_models.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/ticket_detail_screen.dart';
 import 'package:woo_management_app/widgets/custom_text_field.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
 
 import '../widgets/ticket_card_widget.dart';
 
-class GorgiasDashboard extends StatelessWidget {
+class GorgiasDashboard extends StatefulWidget {
   const GorgiasDashboard({super.key});
+
+  @override
+  State<GorgiasDashboard> createState() => _GorgiasDashboardState();
+}
+
+class _GorgiasDashboardState extends State<GorgiasDashboard> {
+  late TextEditingController _searchController;
+  TicketFilter _currentFilter = const TicketFilter();
+  late GorgiasBloc _gorgiasBloc;
+  bool _hasInitialized = false;
+  bool _hasTriggeredFetchTickets = false;
+  bool _isManualFilterChange = false;
+
+  // ✅ Persist last loaded tickets to avoid flicker
+  List<Ticket> _cachedTickets = [];
+  int _cachedPage = 1;
+  bool _cachedHasMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _gorgiasBloc = context.read<GorgiasBloc>();
+
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+
+      _gorgiasBloc.add(const StartRealtimeUpdates());
+
+      final currentState = _gorgiasBloc.state;
+      if (currentState is! TicketsLoaded) {
+        _gorgiasBloc.add(FetchTickets(filter: _currentFilter));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!_gorgiasBloc.isClosed) {
+      _gorgiasBloc.add(const StopRealtimeUpdates());
+    }
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onFilterChanged(TicketFilter newFilter) {
+    setState(() {
+      _currentFilter = newFilter;
+      _isManualFilterChange = true;
+    });
+    _gorgiasBloc.add(FetchTickets(filter: newFilter));
+  }
+
+  void _onSearchChanged(String query) {
+    final newFilter = _currentFilter.copyWith(
+      searchQuery: query.isEmpty ? null : query,
+      page: 1,
+    );
+    _onFilterChanged(newFilter);
+  }
+
+  void _onRefresh() {
+    setState(() {
+      _hasTriggeredFetchTickets = false;
+    });
+    _gorgiasBloc.add(RefreshTickets(filter: _currentFilter));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,81 +95,170 @@ class GorgiasDashboard extends StatelessWidget {
       appBar: SharedAppbar(
         title: 'All Tickets',
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Iconsax.add_outline)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.more_vert_rounded)),
+          IconButton(onPressed: () {}, icon: const Icon(Iconsax.add_outline)),
+          IconButton(
+            onPressed: _onRefresh,
+            icon: const Icon(Icons.refresh_rounded),
+          ),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12.0),
-          physics: const BouncingScrollPhysics(),
+        child: RefreshIndicator(
+          onRefresh: () async => _onRefresh(),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomTextField(
-                controller: TextEditingController(),
-                prefixIcon: Iconsax.search_normal_outline,
-                hintText: 'Search tickets...',
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    CustomTextField(
+                      controller: _searchController,
+                      prefixIcon: Iconsax.search_normal_outline,
+                      hintText: 'Search tickets...',
+                      onChanged: _onSearchChanged,
+                    ),
+                    const SizedBox(height: 16),
+                    _TicketFilterBar(
+                      currentFilter: _currentFilter,
+                      onFilterChanged: _onFilterChanged,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              _TicketFilterBar(),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 3,
-                itemBuilder: (context, index) {
-                  final tickets = [
-                    {
-                      'avatarUrl':
-                          'https://randomuser.me/api/portraits/women/1.jpg',
-                      'userName': 'Emma Garcia',
-                      'message': 'Order delayed? Please help!',
-                      'status': 'Pending',
-                      'timeAgo': '2h',
-                    },
-                    {
-                      'avatarUrl':
-                          'https://randomuser.me/api/portraits/men/7.jpg',
-                      'userName': 'Liam Smith',
-                      'message': 'Received wrong item.',
-                      'status': 'Pending',
-                      'timeAgo': '1h',
-                    },
-                    {
-                      'avatarUrl':
-                          'https://randomuser.me/api/portraits/women/3.jpg',
-                      'userName': 'Sophia Lee',
-                      'message': 'How to return a product?',
-                      'status': 'Pending',
-                      'timeAgo': '30m',
-                    },
-                  ];
-                  final ticket = tickets[index];
-                  return TicketCardWidget(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => TicketDetailScreen(
-                                avatarUrl: ticket['avatarUrl']!,
-                                userName: ticket['userName']!,
-                                message: ticket['message']!,
-                                status: ticket['status']!,
-                                timeAgo: ticket['timeAgo']!,
+              Expanded(
+                child: BlocBuilder<GorgiasBloc, GorgiasState>(
+                  builder: (context, state) {
+                    if (state is TicketsLoading) {
+                      // ✅ If we already have cached tickets, show them instead of spinner
+                      if (_cachedTickets.isNotEmpty) {
+                        return _buildTicketsList(
+                          _cachedTickets,
+                          _cachedPage,
+                          _cachedHasMore,
+                        );
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (state is TicketStatsLoaded) {
+                      if (!_hasTriggeredFetchTickets &&
+                          _hasInitialized &&
+                          !_isManualFilterChange) {
+                        _hasTriggeredFetchTickets = true;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _gorgiasBloc.add(
+                            FetchTickets(filter: _currentFilter),
+                          );
+                        });
+                      }
+
+                      // Agar tickets cache me hain to unhe hi show karte raho
+                      if (_cachedTickets.isNotEmpty) {
+                        return _buildTicketsList(
+                          _cachedTickets,
+                          _cachedPage,
+                          _cachedHasMore,
+                        );
+                      }
+
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Loading tickets...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade400,
                               ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Found ${state.stats.totalTickets} total tickets',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
                         ),
                       );
-                    },
-                    avatarUrl: ticket['avatarUrl']!,
+                    }
 
-                    userName: ticket['userName']!,
-                    message: ticket['message']!,
-                    status: ticket['status']!,
-                    timeAgo: ticket['timeAgo']!,
-                  );
-                },
+                    if (state is TicketsError) {
+                      if (_cachedTickets.isNotEmpty) {
+                        // ✅ fallback to last cached tickets on error
+                        return _buildTicketsList(
+                          _cachedTickets,
+                          _cachedPage,
+                          _cachedHasMore,
+                        );
+                      }
+
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red.shade300,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error loading tickets',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.message,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _onRefresh,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    if (state is TicketsLoaded) {
+                      if (_isManualFilterChange) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          setState(() {
+                            _isManualFilterChange = false;
+                          });
+                        });
+                      }
+
+                      // ✅ Cache last loaded tickets
+                      _cachedTickets = state.tickets;
+                      _cachedPage = state.currentPage;
+                      _cachedHasMore = state.hasMore;
+
+                      return _buildTicketsList(
+                        state.tickets,
+                        state.currentPage,
+                        state.hasMore,
+                      );
+                    }
+
+                    // Default state
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
               ),
             ],
           ),
@@ -98,49 +266,154 @@ class GorgiasDashboard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildTicketsList(
+    List<Ticket> tickets,
+    int currentPage,
+    bool hasMore,
+  ) {
+    if (tickets.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Iconsax.ticket_outline, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            const Text(
+              'No tickets found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _currentFilter.hasActiveFilters
+                  ? 'Try adjusting your filters'
+                  : 'No tickets available',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      itemCount: tickets.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == tickets.length) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  final nextPageFilter = _currentFilter.copyWith(
+                    page: currentPage + 1,
+                  );
+                  _gorgiasBloc.add(FetchTickets(filter: nextPageFilter));
+                },
+                child: const Text('Load More'),
+              ),
+            ),
+          );
+        }
+
+        final ticket = tickets[index];
+        return TicketCardWidget(
+          ticket: ticket,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TicketDetailScreen(ticketId: ticket.id),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
-class _TicketFilterBar extends StatefulWidget {
-  @override
-  State<_TicketFilterBar> createState() => _TicketFilterBarState();
-}
+class _TicketFilterBar extends StatelessWidget {
+  final TicketFilter currentFilter;
+  final Function(TicketFilter) onFilterChanged;
 
-class _TicketFilterBarState extends State<_TicketFilterBar> {
-  final List<String> filters = [
-    'All',
-    'Open',
-    'Pending',
-    'Closed',
-    'Email',
-    'Chat',
-    'Instagram',
-  ];
-  int selected = 0;
+  const _TicketFilterBar({
+    required this.currentFilter,
+    required this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final statusFilters = [
+      {'label': 'All', 'value': 'all'},
+      {'label': 'Open', 'value': 'open'},
+      {'label': 'Closed', 'value': 'closed'},
+    ];
+
+    final channelFilters = [
+      {'label': 'Email', 'value': 'email'},
+      {'label': 'Chat', 'value': 'chat'},
+      {'label': 'SMS', 'value': 'sms'},
+    ];
+
+    final allFilters = [...statusFilters, ...channelFilters];
+
     return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: filters.length,
+        itemCount: allFilters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final isSelected = selected == index;
+          final filter = allFilters[index];
+          final isStatusFilter = index < statusFilters.length;
+          final isSelected =
+              isStatusFilter
+                  ? (currentFilter.status ?? 'all') == filter['value']
+                  : currentFilter.channel == filter['value'];
+
           return GestureDetector(
-            onTap: () => setState(() => selected = index),
+            onTap: () {
+              TicketFilter newFilter;
+              if (isStatusFilter) {
+                final status =
+                    filter['value'] == 'all' ? null : filter['value'];
+                newFilter = currentFilter.copyWith(
+                  status: status,
+                  page: 1, // Reset to first page
+                );
+              } else {
+                final channel =
+                    currentFilter.channel == filter['value']
+                        ? null
+                        : filter['value'];
+                newFilter = currentFilter.copyWith(
+                  channel: channel,
+                  page: 1, // Reset to first page
+                );
+              }
+              onFilterChanged(newFilter);
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
                 color:
                     isSelected ? const Color(0xFF314158) : AppColors.cardDark,
                 borderRadius: BorderRadius.circular(20),
+                border:
+                    isSelected
+                        ? Border.all(color: Colors.blue.shade300, width: 1)
+                        : null,
               ),
               child: Text(
-                filters[index],
+                filter['label']!,
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 14,
                   letterSpacing: 0.2,
                 ),

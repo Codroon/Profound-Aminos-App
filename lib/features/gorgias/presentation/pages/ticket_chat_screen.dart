@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
+import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
+import 'package:woo_management_app/features/gorgias/models/gorgias_models.dart';
 import '../../../../widgets/app_reusable_text.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/custom_button.dart';
@@ -8,22 +13,9 @@ import '../../../../widgets/shared_appbar.dart';
 import '../widgets/ticket_card_widget.dart';
 
 class TicketChatScreen extends StatefulWidget {
-  final String avatarUrl;
-  final String userName;
-  final String message;
-  final String status;
-  final String timeAgo;
-  final String assignedTo;
+  final String ticketId;
 
-  const TicketChatScreen({
-    super.key,
-    required this.avatarUrl,
-    required this.userName,
-    required this.message,
-    required this.status,
-    required this.timeAgo,
-    this.assignedTo = 'Unassigned',
-  });
+  const TicketChatScreen({super.key, required this.ticketId});
 
   @override
   State<TicketChatScreen> createState() => _TicketChatScreenState();
@@ -32,31 +24,64 @@ class TicketChatScreen extends StatefulWidget {
 class _TicketChatScreenState extends State<TicketChatScreen> {
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, dynamic>> messages = [
-    {
-      'text':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.',
-      'isMe': false,
-      'time': '1 FEB 12:00',
-    },
-    {
-      'text': 'Ut enim ad minima veniam, quis nostrud',
-      'isMe': true,
-      'time': '',
-    },
-    {'text': 'Next month?', 'isMe': false, 'time': '00:12'},
-    {
-      'text':
-          'I am almost finish. Please give me your email, I will ZIP them and send you as soon as Im finish.',
-      'isMe': true,
-      'time': '',
-    },
-    {'text': '?', 'isMe': false, 'time': '04:43'},
-    {'text': 'myoki.kawasaki@email.com', 'isMe': true, 'time': ''},
-    {'text': '👍', 'isMe': false, 'time': ''},
-  ];
+  Ticket? currentTicket;
+  List<Message> messages = [];
+  late GorgiasBloc _gorgiasBloc;
 
-  final String internalNote = 'Check with logistics team before replying.';
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Get bloc reference safely
+    _gorgiasBloc = context.read<GorgiasBloc>();
+
+    // Start real-time updates for this ticket
+    _gorgiasBloc.add(const StartRealtimeUpdates());
+
+    // Fetch ticket details and messages when screen loads
+    _gorgiasBloc.add(FetchTicketDetails(widget.ticketId));
+    _gorgiasBloc.add(FetchTicketMessages(widget.ticketId));
+  }
+
+  @override
+  void dispose() {
+    // Stop real-time updates
+    _gorgiasBloc.add(const StopRealtimeUpdates());
+    messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    final messageText = messageController.text.trim();
+    if (messageText.isEmpty) return;
+
+    _gorgiasBloc.add(
+      SendMessage(
+        ticketId: widget.ticketId,
+        message: messageText,
+        isInternal: false,
+      ),
+    );
+
+    messageController.clear();
+
+    // Scroll to bottom after sending message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,125 +89,260 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
       appBar: SharedAppbar(
         title: 'Chat',
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Iconsax.add_outline)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.more_vert_rounded)),
+          IconButton(
+            onPressed: () {
+              // Refresh messages
+              _gorgiasBloc.add(FetchTicketMessages(widget.ticketId));
+            },
+            icon: Icon(Icons.refresh_rounded),
+          ),
+         
         ],
       ),
       body: SafeArea(
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    padding: EdgeInsets.zero,
-                    children: [
-                      TicketCardWidget(
-                        avatarUrl: widget.avatarUrl,
-                        userName: widget.userName,
-                        message: widget.message,
-                        status: widget.status,
-                        timeAgo: widget.timeAgo,
-                      ),
-                      const Gap(8),
-                      Row(
+        child: BlocConsumer<GorgiasBloc, GorgiasState>(
+          listener: (context, state) {
+            if (state is MessageSent) {
+              // Refresh messages after sending
+              context.read<GorgiasBloc>().add(
+                FetchTicketMessages(widget.ticketId),
+              );
+            }
+
+            if (state is MessageSendError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to send message: ${state.message}'),
+                  backgroundColor: Colors.red,
+                  action: SnackBarAction(
+                    label: 'Retry',
+                    onPressed: () {
+                      // TODO: Implement retry logic
+                    },
+                  ),
+                ),
+              );
+            }
+
+            if (state is MessageSendError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            // Update local state based on BLoC state
+            if (state is TicketDetailsLoaded) {
+              currentTicket = state.ticket;
+            }
+            if (state is TicketDetailsLoaded) {
+              messages = state.messages;
+            }
+
+            return Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 10,
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView(
+                        controller: _scrollController,
+                        padding: EdgeInsets.zero,
                         children: [
-                          AppReusableText(
-                            text: 'Assigned to: ',
-                            fontWeight: FontWeight.w400,
-                            fontSize: 13,
-                            color: Colors.white70,
-                          ),
-                          AppReusableText(
-                            text: widget.assignedTo,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                      const Gap(16),
-                      ..._buildChatBubbles(),
-                      const Gap(18),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF314158),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.info_outline,
-                              color: Colors.white,
-                              size: 20,
+                          // Ticket Card
+                          if (currentTicket != null)
+                            TicketCardWidget(
+                              ticket: currentTicket!,
+                              onTap: null,
+                            )
+                          else if (state is TicketDetailsLoading)
+                            Container(
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF252533),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          else
+                            Container(
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF252533),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Loading ticket details...',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ),
                             ),
-                            const Gap(8),
-                            Expanded(
-                              child: Column(
+
+                          const Gap(8),
+
+                          // Assignment Info
+                          if (currentTicket != null)
+                            Row(
+                              children: [
+                                AppReusableText(
+                                  text: 'Assigned to: ',
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                ),
+                                AppReusableText(
+                                  text:
+                                      currentTicket!.assignedUser?.name ??
+                                      'Unassigned',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+
+                          const Gap(16),
+
+                          // Messages
+                          if (state is MessagesLoading)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          else if (messages.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Text(
+                                  'No messages yet',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ..._buildChatBubbles(),
+
+                          const Gap(18),
+
+                          // Internal Note (if exists)
+                          if (currentTicket?.tags?.isNotEmpty == true)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF314158),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  AppReusableText(
-                                    text: 'Internal Note',
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
+                                  const Icon(
+                                    Icons.info_outline,
                                     color: Colors.white,
+                                    size: 20,
                                   ),
-                                  const Gap(4),
-                                  AppReusableText(
-                                    text: internalNote,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 13,
-                                    color: Colors.white70,
-                                    maxLines: 2,
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        AppReusableText(
+                                          text: 'Tags',
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          color: Colors.white,
+                                        ),
+                                        const Gap(4),
+                                        AppReusableText(
+                                          text: currentTicket!.tags.join(', '),
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 13,
+                                          color: Colors.white70,
+                                          maxLines: 2,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const Gap(8),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextField(
-                        controller: messageController,
-                        hintText: 'Write a message',
-                        borderRadius: 28,
-                        filledColor: const Color(0xFF252533),
-                        suffixIcon: Container(
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 2,
-                            horizontal: 4,
-                          ),
-                          width: 32,
-                          height: 32,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF5D2DE6),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.send, color: Colors.white),
-                            onPressed: () {},
-                          ),
-                        ),
-                        prefixIcon: Icons.attach_file_outlined,
+
+                          const Gap(8),
+                        ],
                       ),
                     ),
-                    const Gap(8),
+
+                    // Message Input
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomTextField(
+                            controller: messageController,
+                            hintText: 'Write a message',
+                            borderRadius: 28,
+                            filledColor: const Color(0xFF252533),
+                            onSubmitted: (_) => _sendMessage(),
+                            suffixIcon: Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 2,
+                                horizontal: 4,
+                              ),
+                              width: 32,
+                              height: 32,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF5D2DE6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon:
+                                    state is SendingMessage
+                                        ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.send,
+                                          color: Colors.white,
+                                        ),
+                                onPressed:
+                                    state is SendingMessage
+                                        ? null
+                                        : _sendMessage,
+                              ),
+                            ),
+                            prefixIcon: Icons.attach_file_outlined,
+                          ),
+                        ),
+                        const Gap(8),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -190,41 +350,100 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
 
   List<Widget> _buildChatBubbles() {
     List<Widget> bubbles = [];
-    for (var msg in messages) {
+
+    for (int i = 0; i < messages.length; i++) {
+      final message = messages[i];
+      final isFromCustomer = message.sender.type == 'customer';
+      final isInternal = message.isInternal;
+
+      // Skip internal messages in chat view (they're for agents only)
+      if (isInternal) continue;
+
       bubbles.add(
         Align(
-          alignment: msg['isMe'] ? Alignment.centerRight : Alignment.centerLeft,
+          alignment:
+              isFromCustomer ? Alignment.centerLeft : Alignment.centerRight,
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
             decoration: BoxDecoration(
               color:
-                  msg['isMe']
-                      ? const Color(0xFF1D293D)
-                      : const Color(0xFF314158),
+                  isFromCustomer
+                      ? const Color(0xFF314158)
+                      : const Color(0xFF1D293D),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
-                bottomLeft: Radius.circular(msg['isMe'] ? 16 : 4),
-                bottomRight: Radius.circular(msg['isMe'] ? 4 : 16),
+                bottomLeft: Radius.circular(isFromCustomer ? 4 : 16),
+                bottomRight: Radius.circular(isFromCustomer ? 16 : 4),
               ),
             ),
-            child: AppReusableText(
-              text: msg['text'],
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (message.sender.name.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: AppReusableText(
+                      text: message.sender.name,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                AppReusableText(
+                  text: message.bodyText,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  color: Colors.white,
+                  maxLines: 50,
+                ),
+                if (message.attachments.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Wrap(
+                      spacing: 4,
+                      children:
+                          message.attachments.map((attachment) {
+                            return Chip(
+                              label: Text(
+                                attachment.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              backgroundColor: Colors.blue.shade700,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            );
+                          }).toList(),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
       );
-      if (msg['time'] != null && msg['time'] != '') {
+
+      // Show timestamp for every few messages or if significant time gap
+      final showTime =
+          i == 0 ||
+          i == messages.length - 1 ||
+          (i > 0 &&
+              message.createdAt.difference(messages[i - 1].createdAt).inHours >
+                  1);
+
+      if (showTime) {
         bubbles.add(
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Center(
               child: AppReusableText(
-                text: msg['time'],
+                text: message.formattedTime,
                 fontWeight: FontWeight.w400,
                 fontSize: 11,
                 color: Colors.white38,
@@ -234,6 +453,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
         );
       }
     }
+
     return bubbles;
   }
 }

@@ -1,16 +1,19 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:woo_management_app/core/services/crediential_storage_service.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/core/theme/app_text_style.dart';
 import 'package:woo_management_app/core/utils/motion_toast.dart';
 import 'package:woo_management_app/features/home/presentation/pages/bottom_nav_page.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
-import 'package:woo_management_app/widgets/custom_text_field.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:woo_management_app/core/services/crediential_storage_service.dart';
-import 'dart:developer';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:woo_management_app/widgets/custom_loading_widget.dart';
+import 'package:woo_management_app/widgets/custom_text_field.dart';
+
+import '../../../../core/services/credential_initialization_service.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -52,6 +55,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         name: 'AdminLogin',
       );
       // Map Firestore fields to your expected keys
+      // inside _login(), after mapping WooCommerce/WordPress/Gorgias credentials
       final creds = {
         'wooKey': (data['wooKey'] ?? '').toString(),
         'wooSecret': (data['wooSecret'] ?? '').toString(),
@@ -64,7 +68,15 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         ),
         'gorgiasUserName': (data['gorgiasUserName'] ?? '').toString(),
         'wordPressUserName': (data['wordPressUserName'] ?? '').toString(),
+        // ReachShip credentials - map from Firestore field names
+        'reachShipClientId': (data['reachClientIdSand'] ?? '').toString(),
+        'reachShipClientSecret': (data['reachSecretSand'] ?? '').toString(),
+        'reachShipEnv': 'sandbox',
+        // Production credentials (for future use)
+        'reachShipProClientId': (data['reachProClientId'] ?? '').toString(),
+        'reachShipProSecret': (data['reachProSecret'] ?? '').toString(),
       };
+
       log(
         '[AdminLogin] Mapped credentials for storage: $creds',
         name: 'AdminLogin',
@@ -75,6 +87,31 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         '[AdminLogin] Credentials saved to secure storage',
         name: 'AdminLogin',
       );
+
+      // Log ReachShip credentials for verification
+      log(
+        '[AdminLogin] ReachShip ClientId: ${creds['reachShipClientId']}',
+        name: 'AdminLogin',
+      );
+      log(
+        '[AdminLogin] ReachShip Environment: ${creds['reachShipEnv']}',
+        name: 'AdminLogin',
+      );
+
+      // Initialize credentials in ApiService
+      try {
+        await CredentialInitializationService().initializeCredentials();
+        log(
+          '[AdminLogin] Credentials initialized in ApiService',
+          name: 'AdminLogin',
+        );
+      } catch (e) {
+        log(
+          '[AdminLogin] Failed to initialize credentials in ApiService: $e',
+          name: 'AdminLogin',
+          error: e,
+        );
+      }
       // Store remember me flag
       if (_rememberMe) {
         await _secureStorage.write(key: 'remember_me', value: 'true');
@@ -125,10 +162,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          body: Center(
+    return Scaffold(
+      body: Stack(
+        children: [
+          Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
               child: Form(
@@ -231,17 +268,15 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               ),
             ),
           ),
-        ),
-        if (_isLoading)
-          Positioned.fill(
-            child: Container(
+          if (_isLoading)
+            Container(
               color: Colors.black.withOpacity(0.35),
               child: const Center(
                 child: CustomLoadingWidget(text: 'Logging in... Please wait'),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

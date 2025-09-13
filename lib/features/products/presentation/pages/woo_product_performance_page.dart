@@ -31,96 +31,103 @@ class WooProductPerformancePage extends StatelessWidget {
       7,
       (i) => ordersPerDay[i + 1]?.toDouble() ?? 0,
     );
-    
+
     // Debug information
     print('[WooProductPerformancePage] Total orders: ${orders.length}');
     print('[WooProductPerformancePage] Weekly data: $weeklyData');
     print('[WooProductPerformancePage] Orders per day: $ordersPerDay');
-    
+
     return weeklyData;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => di.sl<ProductBloc>()..add(const FetchProducts()),
-        ),
-      ],
-      child: Scaffold(
-        appBar: SharedAppbar(title: 'Product Performance'),
-        body: SafeArea(
-          child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
-            builder: (context, analyticsState) {
-              return BlocBuilder<ProductBloc, ProductState>(
-                builder: (context, productState) {
-                  if (productState is ProductLoading ||
-                      analyticsState is AnalyticsLoading) {
-                    return Center(
-                      child: CustomLoadingWidget(text: 'Loading... '),
-                    );
-                  } else if (productState is ProductLoaded &&
-                      analyticsState is AnalyticsLoaded) {
-                    final products = productState.products;
-                    final orders = analyticsState.allOrders;
+    return Scaffold(
+      appBar: SharedAppbar(title: 'Product Performance'),
+      body: SafeArea(
+        child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
+          builder: (context, analyticsState) {
+            // Check if we need to fetch products
+            if (context.read<ProductBloc>().state is! ProductLoaded) {
+              // Only add the event if we're not already loading
+              if (context.read<ProductBloc>().state is! ProductLoading) {
+                context.read<ProductBloc>().add(const FetchProducts(forceRefresh: true));
+              }
+            }
 
-                    final revenue = products.fold<double>(
-                      0,
-                      (sum, p) =>
-                          sum +
-                          (double.tryParse(p['price']?.toString() ?? '0') ?? 0),
-                    );
+            return BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, productState) {
+                // Show loading only when both states are loading or when one is loading and the other isn't loaded yet
+                final bool isLoading =
+                    (productState is ProductLoading &&
+                        !(productState is ProductLoaded)) ||
+                    (analyticsState is AnalyticsLoading &&
+                        !(analyticsState is AnalyticsLoaded));
 
-                    // This is calculating total product sales, not order count
-                    final totalProductSales = products.fold<int>(
-                      0,
-                      (sum, p) =>
-                          sum +
-                          (int.tryParse(p['total_sales']?.toString() ?? '0') ??
-                              0),
-                    );
+                if (isLoading) {
+                  return Center(
+                    child: CustomLoadingWidget(text: 'Loading... '),
+                  );
+                } else if (productState is ProductLoaded &&
+                    analyticsState is AnalyticsLoaded) {
+                  final products = productState.products;
+                  final orders = analyticsState.allOrders;
 
-                    // For actual order count, use the same source as home page
-                    final orderCount = orders.length;
-                    print(
-                      '[WooProductPerformancePage] Total orders count: $orderCount',
-                    );
+                  final revenue = products.fold<double>(
+                    0,
+                    (sum, p) =>
+                        sum +
+                        (double.tryParse(p['price']?.toString() ?? '0') ?? 0),
+                  );
 
-                    final weeklyData = _calculateWeeklyOrderData(orders);
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(12.0),
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ProductPerformanceCard(
-                            revenue: revenue,
-                            orders: totalProductSales,
-                            weeklyData: weeklyData,
-                          ),
-                          const SizedBox(height: 24),
-                          TopPerformerProductSummary(products: products),
-                        ],
-                      ),
-                    );
-                  } else if (productState is ProductError ||
-                      analyticsState is AnalyticsError) {
-                    return Center(
-                      child: Text(
-                        productState is ProductError
-                            ? productState.message
-                            : analyticsState is AnalyticsError
-                            ? analyticsState.message
-                            : 'Error',
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              );
-            },
-          ),
+                  // This is calculating total product sales, not order count
+                  final totalProductSales = products.fold<int>(
+                    0,
+                    (sum, p) =>
+                        sum +
+                        (int.tryParse(p['total_sales']?.toString() ?? '0') ??
+                            0),
+                  );
+
+                  // For actual order count, use the same source as home page
+                  final orderCount = orders.length;
+                  print(
+                    '[WooProductPerformancePage] Total orders count: $orderCount',
+                  );
+
+                  final weeklyData = _calculateWeeklyOrderData(orders);
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(12.0),
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProductPerformanceCard(
+                          revenue: revenue,
+                          orders: totalProductSales,
+                          weeklyData: weeklyData,
+                        ),
+                        const SizedBox(height: 24),
+                        TopPerformerProductSummary(products: products),
+                      ],
+                    ),
+                  );
+                } else if (productState is ProductError ||
+                    analyticsState is AnalyticsError) {
+                  return Center(
+                    child: Text(
+                      productState is ProductError
+                          ? productState.message
+                          : analyticsState is AnalyticsError
+                          ? analyticsState.message
+                          : 'Error',
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            );
+          },
         ),
       ),
     );

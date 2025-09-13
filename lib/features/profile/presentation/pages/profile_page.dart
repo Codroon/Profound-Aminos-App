@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/utils/motion_toast.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -7,9 +8,30 @@ import '../../../../core/theme/app_text_style.dart';
 import '../../../../widgets/custom_dialog_box.dart';
 import '../../../../widgets/shared_appbar.dart';
 import '../../../auth/presentation/pages/admin_login_screen.dart';
+import '../../../../core/services/crediential_storage_service.dart';
+import '../../../../core/services/api_credential_service.dart';
+import '../../../../core/services/gorgias_debug_service.dart';
+import '../../../../core/services/credential_initialization_service.dart';
+import '../../../../core/services/firestore_credentials_service.dart';
+import '../../../analytics/bloc/analytics_bloc.dart';
+import '../../../analytics/bloc/analytics_event.dart';
+import '../../../analytics/bloc/analytics_state.dart';
+import 'credential_set_up_screen.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch analytics data when the profile page loads
+    context.read<AnalyticsBloc>().add(FetchAnalytics(0));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +53,21 @@ class ProfilePage extends StatelessWidget {
             // Account Section
             _buildSectionTitle('Account'),
             const SizedBox(height: 15),
-            // _buildProfileOption(
-            //   icon: Iconsax.user_edit_outline,
-            //   title: 'Edit Profile',
-            //   subtitle: 'Update your personal information',
-            //   onTap: () => _showComingSoonDialog(context, 'Edit Profile'),
-            // ),
+
             _buildProfileOption(
               icon: Iconsax.security_safe_outline,
               title: 'Security',
-              subtitle: 'Password and authentication',
-              onTap: () => _showComingSoonDialog(context, 'Security Settings'),
+              subtitle: 'Manage your credentials.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return SetupScreen();
+                    },
+                  ),
+                );
+              },
             ),
             _buildProfileOption(
               icon: Iconsax.notification_outline,
@@ -52,63 +78,48 @@ class ProfilePage extends StatelessWidget {
             ),
 
             // const SizedBox(height: 25),
-            // // Business Section
-            // _buildSectionTitle('Business'),
-            // const SizedBox(height: 15),
+            //
             // _buildProfileOption(
-            //   icon: Iconsax.shop_outline,
-            //   title: 'Store Settings',
-            //   subtitle: 'Manage your WooCommerce store',
-            //   onTap: () => _showComingSoonDialog(context, 'Store Settings'),
+            //   icon: Iconsax.message_outline,
+            //   title: 'Debug Gorgias Credentials',
+            //   subtitle: 'Test and debug Gorgias authentication',
+            //   onTap: () => _debugGorgiasCredentials(context),
             // ),
             // _buildProfileOption(
-            //   icon: Iconsax.chart_outline,
-            //   title: 'Analytics Preferences',
-            //   subtitle: 'Customize your dashboard analytics',
-            //   onTap:
-            //       () => _showComingSoonDialog(context, 'Analytics Preferences'),
-            // ),
-            // _buildProfileOption(
-            //   icon: Iconsax.card_outline,
-            //   title: 'Payment Methods',
-            //   subtitle: 'Manage payment and billing',
-            //   onTap: () => _showComingSoonDialog(context, 'Payment Methods'),
+            //   icon: Iconsax.refresh_outline,
+            //   title: 'Refresh Gorgias Credentials',
+            //   subtitle: 'Reload Gorgias credentials from storage',
+            //   onTap: () => _refreshGorgiasCredentials(context),
             // ),
             const SizedBox(height: 25),
 
-            // Support Section
-            _buildSectionTitle('Support'),
+            // Credentials Management Section
+            _buildSectionTitle('Credentials Management'),
             const SizedBox(height: 15),
-            // _buildProfileOption(
-            //   icon: Iconsax.message_question_outline,
-            //   title: 'Help Center',
-            //   subtitle: 'Get help and support',
-            //   onTap: () => _showComingSoonDialog(context, 'Help Center'),
-            // ),
             _buildProfileOption(
-              icon: Iconsax.call_outline,
-              title: 'Contact Support',
-              subtitle: 'Reach out to our support team',
-              onTap: () => _showComingSoonDialog(context, 'Contact Support'),
+              icon: Iconsax.cloud_add_outline,
+              title: 'Upload Credentials to Cloud',
+              subtitle: 'Backup your credentials to Firestore',
+              onTap: () => _uploadCredentialsToFirestore(context),
+            ),
+            _buildProfileOption(
+              icon: Iconsax.cloud_drizzle_bold,
+              title: 'Download Credentials from Cloud',
+              subtitle: 'Restore your credentials from Firestore',
+              onTap: () => _downloadCredentialsFromFirestore(context),
+            ),
+            _buildProfileOption(
+              icon: Iconsax.cloud_outline,
+              title: 'View Cloud Credentials Info',
+              subtitle: 'Check your Firestore credentials status',
+              onTap: () => _viewCredentialsInfo(context),
             ),
 
-            // _buildProfileOption(
-            //   icon: Iconsax.document_text_outline,
-            //   title: 'Terms & Privacy',
-            //   subtitle: 'Read our terms and privacy policy',
-            //   onTap: () => _showComingSoonDialog(context, 'Terms & Privacy'),
-            // ),
             const SizedBox(height: 25),
 
             // App Section
             _buildSectionTitle('App'),
             const SizedBox(height: 15),
-            // _buildProfileOption(
-            //   icon: Iconsax.setting_2_outline,
-            //   title: 'App Settings',
-            //   subtitle: 'Theme, language, and preferences',
-            //   onTap: () => _showComingSoonDialog(context, 'App Settings'),
-            // ),
             _buildProfileOption(
               icon: Iconsax.info_circle_outline,
               title: 'About',
@@ -179,15 +190,34 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: 15),
 
           // Stats Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatItem('Orders', '156'),
-              _buildVerticalDivider(),
-              _buildStatItem('Revenue', '\$12.5K'),
-              _buildVerticalDivider(),
-              _buildStatItem('Products', '89'),
-            ],
+          BlocBuilder<AnalyticsBloc, AnalyticsState>(
+            builder: (context, state) {
+              String orderCount = '-';
+              String revenue = '-';
+              String productCount = '-';
+
+              if (state is AnalyticsLoaded) {
+                orderCount = state.allOrders.length.toString();
+                // Format revenue properly
+                if (state.revenue >= 1000) {
+                  revenue = '\$${(state.revenue / 1000).toStringAsFixed(1)}K';
+                } else {
+                  revenue = '\$${state.revenue.toStringAsFixed(0)}';
+                }
+                productCount = state.products.length.toString();
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildStatItem('Orders', orderCount),
+                  _buildVerticalDivider(),
+                  _buildStatItem('Revenue', revenue),
+                  _buildVerticalDivider(),
+                  _buildStatItem('Products', productCount),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -374,6 +404,206 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  void _debugGorgiasCredentials(BuildContext context) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: AppColors.cardDark,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(width: 20),
+                Text(
+                  'Debugging Gorgias credentials...',
+                  style: AppTextStyles.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      final debugInfo = await GorgiasDebugService.debugGorgiasCredentials();
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show debug results
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: AppColors.cardDark,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  debugInfo['tokenValid'] == true
+                      ? Iconsax.tick_circle_outline
+                      : Iconsax.close_circle_outline,
+                  color:
+                      debugInfo['tokenValid'] == true
+                          ? AppColors.success
+                          : AppColors.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 10),
+                Text('Gorgias Debug Results', style: AppTextStyles.h4),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDebugRow(
+                    'Token Exists',
+                    debugInfo['tokenExists']?.toString() ?? 'false',
+                  ),
+                  _buildDebugRow(
+                    'Token Length',
+                    debugInfo['tokenLength']?.toString() ?? '0',
+                  ),
+                  _buildDebugRow(
+                    'Subdomain',
+                    debugInfo['subdomain'] ?? 'Not set',
+                  ),
+                  if (debugInfo['responseStatus'] != null)
+                    _buildDebugRow(
+                      'Response Status',
+                      debugInfo['responseStatus'].toString(),
+                    ),
+                  if (debugInfo['tokenValid'] == true)
+                    _buildDebugRow(
+                      'Account Name',
+                      debugInfo['accountName'] ?? 'Unknown',
+                    ),
+                  if (debugInfo['errorMessage'] != null)
+                    _buildDebugRow('Error', debugInfo['errorMessage']),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: AppTextStyles.buttonMedium.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+
+      // Show toast based on result
+      if (debugInfo['tokenValid'] == true) {
+        ToastUtils.showSuccessToast(
+          context,
+          title: 'Debug Success',
+          description: 'Gorgias credentials are valid',
+        );
+      } else {
+        ToastUtils.showErrorToast(
+          context,
+          title: 'Debug Failed',
+          description:
+              debugInfo['errorMessage'] ?? 'Gorgias credentials are invalid',
+        );
+      }
+    } catch (error) {
+      // Close loading dialog if still open
+      Navigator.of(context).pop();
+
+      ToastUtils.showErrorToast(
+        context,
+        title: 'Debug Error',
+        description: 'Failed to debug Gorgias credentials: $error',
+      );
+    }
+  }
+
+  void _refreshGorgiasCredentials(BuildContext context) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: AppColors.cardDark,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(width: 20),
+                Text(
+                  'Refreshing Gorgias credentials...',
+                  style: AppTextStyles.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      await CredentialInitializationService.refreshGorgiasCredentials();
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      ToastUtils.showSuccessToast(
+        context,
+        title: 'Refresh Success',
+        description: 'Gorgias credentials have been refreshed',
+      );
+    } catch (error) {
+      // Close loading dialog if still open
+      Navigator.of(context).pop();
+
+      ToastUtils.showErrorToast(
+        context,
+        title: 'Refresh Error',
+        description: 'Failed to refresh Gorgias credentials: $error',
+      );
+    }
+  }
+
+  Widget _buildDebugRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(child: Text(value, style: AppTextStyles.caption)),
+        ],
+      ),
+    );
+  }
+
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -413,6 +643,229 @@ class ProfilePage extends StatelessWidget {
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: AppTextStyles.buttonMedium.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Firestore Credentials Management Methods
+  Future<void> _uploadCredentialsToFirestore(BuildContext context) async {
+    try {
+      _showLoadingDialog(context, 'Uploading credentials to cloud...');
+
+      final firestoreService = FirestoreCredentialsService();
+      await firestoreService.uploadCredentialsToFirestore();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      _showSuccessDialog(
+        context,
+        'Success',
+        'Credentials have been successfully uploaded to Firestore.',
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      _showErrorDialog(
+        context,
+        'Upload Failed',
+        'Failed to upload credentials to Firestore: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> _downloadCredentialsFromFirestore(BuildContext context) async {
+    try {
+      _showLoadingDialog(context, 'Downloading credentials from cloud...');
+
+      final firestoreService = FirestoreCredentialsService();
+      await firestoreService.downloadCredentialsFromFirestore();
+
+      // Reinitialize credentials after download
+      await CredentialInitializationService().initializeCredentials();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      _showSuccessDialog(
+        context,
+        'Success',
+        'Credentials have been successfully downloaded from Firestore and applied.',
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      _showErrorDialog(
+        context,
+        'Download Failed',
+        'Failed to download credentials from Firestore: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> _viewCredentialsInfo(BuildContext context) async {
+    try {
+      _showLoadingDialog(context, 'Checking cloud credentials...');
+
+      final firestoreService = FirestoreCredentialsService();
+      final info = await firestoreService.getCredentialsInfo();
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (info == null) {
+        _showInfoDialog(
+          context,
+          'No Cloud Credentials',
+          'No credentials found in Firestore for your account.',
+        );
+        return;
+      }
+
+      final hasCredentials = info['hasCredentials'] ?? false;
+      final lastUpdated = info['lastUpdated'];
+      final credentialKeys = List<String>.from(info['credentialKeys'] ?? []);
+
+      String message =
+          hasCredentials
+              ? 'You have credentials stored in Firestore.\n\n'
+              : 'No credentials found in Firestore.\n\n';
+
+      if (lastUpdated != null) {
+        message += 'Last updated: ${lastUpdated.toDate()}\n\n';
+      }
+
+      if (credentialKeys.isNotEmpty) {
+        message += 'Available credentials:\n${credentialKeys.join(', ')}';
+      }
+
+      _showInfoDialog(context, 'Cloud Credentials Info', message);
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      _showErrorDialog(
+        context,
+        'Info Failed',
+        'Failed to get credentials info from Firestore: ${e.toString()}',
+      );
+    }
+  }
+
+  void _showLoadingDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(width: 20),
+              Expanded(child: Text(message, style: AppTextStyles.bodyMedium)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Iconsax.tick_circle_outline, color: Colors.green, size: 24),
+              const SizedBox(width: 10),
+              Text(title, style: AppTextStyles.h4),
+            ],
+          ),
+          content: Text(message, style: AppTextStyles.bodyMedium),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: AppTextStyles.buttonMedium.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showInfoDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Iconsax.info_circle_outline,
+                color: AppColors.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 10),
+              Text(title, style: AppTextStyles.h4),
+            ],
+          ),
+          content: Text(message, style: AppTextStyles.bodyMedium),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: AppTextStyles.buttonMedium.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Iconsax.close_circle_outline, color: Colors.red, size: 24),
+              const SizedBox(width: 10),
+              Text(title, style: AppTextStyles.h4),
+            ],
+          ),
+          content: Text(message, style: AppTextStyles.bodyMedium),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

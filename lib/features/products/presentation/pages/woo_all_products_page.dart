@@ -5,6 +5,8 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
+import 'package:woo_management_app/widgets/custom_loading_widget.dart';
+import 'package:woo_management_app/widgets/shared_appbar.dart';
 import '../../bloc/product_bloc.dart';
 import '../../bloc/product_event.dart';
 import '../../bloc/product_state.dart';
@@ -29,6 +31,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
   @override
   void initState() {
     super.initState();
+    // Load products when page is opened
     _loadProducts();
     _scrollController.addListener(_onScroll);
   }
@@ -47,7 +50,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
     }
 
     context.read<ProductBloc>().add(
-      FetchProducts(page: _currentPage, perPage: 20),
+      FetchProducts(page: _currentPage, perPage: 20, forceRefresh: true),
     );
   }
 
@@ -65,64 +68,44 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
       _currentPage++;
     });
     context.read<ProductBloc>().add(
-      FetchProducts(page: _currentPage, perPage: 20),
+      FetchProducts(page: _currentPage, perPage: 20, forceRefresh: true),
     );
   }
+
+  String _searchQuery = '';
+  bool _isSearching = false;
 
   void _onSearch(String query) {
-    // For now, we'll implement a simple local search
-    // In a real app, you might want to implement server-side search
     setState(() {
+      _searchQuery = query;
       _currentPage = 1;
       _allProducts.clear();
+      _isSearching = query.isNotEmpty;
     });
-    _loadProducts(refresh: true);
+
+    if (query.isNotEmpty) {
+      context.read<ProductBloc>().add(
+        FetchProducts(page: _currentPage, perPage: 20, searchTerm: query, forceRefresh: true),
+      );
+    } else {
+      _loadProducts(refresh: true);
+    }
   }
 
-  void _showDeleteConfirmation(BuildContext context, dynamic product) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Product'),
-          content: Text(
-            'Are you sure you want to delete "${product['name']}"?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.read<ProductBloc>().add(DeleteProduct(product['id']));
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // Note: Product deletion is now handled directly in the ProductCard's onDelete callback
+  // The confirmation dialog is shown by the Dismissible widget's confirmDismiss property
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const AppReusableText(
-          text: 'All Products',
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-        ),
-        // backgroundColor: AppColors.background,
-        elevation: 0,
+      appBar: SharedAppbar(
+        title: 'All Products',
+
         actions: [
           IconButton(
             onPressed: () => _loadProducts(refresh: true),
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Iconsax.refresh_outline),
           ),
         ],
       ),
@@ -133,16 +116,34 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
+              onTapOutside: (_) {
+                FocusScope.of(context).unfocus();
+              },
               decoration: InputDecoration(
                 hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon:
+                    _isSearching
+                        ? const Icon(Icons.search, color: AppColors.primary)
+                        : const Icon(Icons.search),
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearch('');
+                          },
+                        )
+                        : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(
+                    color: _isSearching ? AppColors.primary : AppColors.border,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -151,32 +152,21 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                     width: 2,
                   ),
                 ),
+                filled: _isSearching,
+                fillColor:
+                    _isSearching ? AppColors.primary.withOpacity(0.05) : null,
               ),
+              onChanged: (value) {
+                if (value.isEmpty && _searchQuery.isNotEmpty) {
+                  _onSearch('');
+                } else if (value.isNotEmpty && value.length >= 3) {
+                  _onSearch(value);
+                }
+              },
               onSubmitted: _onSearch,
+              textInputAction: TextInputAction.search,
             ),
           ),
-
-          // Add Product Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: CustomButton(
-                text: 'Add New Product',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateProductPage(),
-                    ),
-                  );
-                },
-                // icon: Icons.add,
-              ),
-            ),
-          ),
-
-          const Gap(16),
 
           // Products List
           Expanded(
@@ -211,7 +201,71 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
               builder: (context, state) {
                 if (state is ProductLoading && _allProducts.isEmpty) {
                   return const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
+                    child: CustomLoadingWidget(
+                      text: 'Getting your products...',
+                    ),
+                  );
+                }
+                // Show loading indicator when searching
+                if (state is ProductLoading &&
+                    _isSearching &&
+                    _searchQuery.isNotEmpty) {
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search, color: AppColors.primary),
+                            const Gap(8),
+                            Expanded(
+                              child: AppReusableText(
+                                text: 'Searching for "$_searchQuery"...',
+                                fontSize: 14,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_allProducts.isNotEmpty)
+                        Expanded(
+                          child: Opacity(
+                            opacity: 0.6,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: _allProducts.length,
+                              itemBuilder: (context, index) {
+                                final product = _allProducts[index];
+                                return ProductCard(
+                                  product: product,
+                                  onEdit: () {},
+                                  onDelete: () {
+                                    // Immediately remove the product from the local list
+                                    setState(() {
+                                      _allProducts.removeAt(index);
+                                    });
+                                    // Then trigger the actual deletion in the backend
+                                    context.read<ProductBloc>().add(DeleteProduct(product['id']));
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 }
 
@@ -283,8 +337,8 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primary,
+                          child: CustomLoadingWidget(
+                            text: 'Loading more products...',
                           ),
                         ),
                       );
@@ -302,7 +356,14 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                           ),
                         );
                       },
-                      onDelete: () => _showDeleteConfirmation(context, product),
+                      onDelete: () {
+                        // Immediately remove the product from the local list
+                        setState(() {
+                          _allProducts.removeAt(index);
+                        });
+                        // Then trigger the actual deletion in the backend
+                        context.read<ProductBloc>().add(DeleteProduct(product['id']));
+                      },
                     );
                   },
                 );
@@ -310,6 +371,17 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateProductPage()),
+          );
+        },
+        backgroundColor: AppColors.primary,
+        tooltip: 'Add Product',
+        child: const Icon(BoxIcons.bx_plus, color: Colors.white),
       ),
     );
   }

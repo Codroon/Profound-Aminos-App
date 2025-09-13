@@ -5,6 +5,8 @@ import '../repository/product_repository.dart';
 
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository repository;
+  List<dynamic>? _cachedProducts;
+  
   ProductBloc({required this.repository}) : super(ProductInitial()) {
     on<FetchProducts>(_onFetchProducts);
     on<CreateProduct>(_onCreateProduct);
@@ -13,6 +15,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   Future<void> _onFetchProducts(FetchProducts event, Emitter<ProductState> emit) async {
+    // If we have cached products and no search term is provided, use the cache
+    if (_cachedProducts != null && event.searchTerm == null && !event.forceRefresh) {
+      emit(ProductLoaded(_cachedProducts!));
+      return;
+    }
+    
     emit(ProductLoading());
     try {
       final products = await repository.getProducts(
@@ -20,6 +28,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         perPage: event.perPage, 
         searchTerm: event.searchTerm
       );
+      _cachedProducts = products; // Cache the products
       emit(ProductLoaded(products));
     } catch (e) {
       emit(ProductError('Failed to fetch products.'));
