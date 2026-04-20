@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/gorgias_dashboard.dart';
+import 'package:woo_management_app/features/reach_ship/presentation/pages/shipment_management_page.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../word_press/presentation/pages/word_press_posts_page.dart';
-import '../../../reach_ship/presentation/pages/reach_ship_main_page.dart';
 import 'home_page.dart';
 
 class BottomNavScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   final List<Widget> _screens = const [
     HomePage(),
-    ReachShipMainPage(),
+    ShipmentManagementPage(),
     GorgiasDashboard(),
     WordPressPostsPage(),
     ProfilePage(),

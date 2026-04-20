@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../models/sales_report_model.dart';
+import '../models/revenue_period.dart';
+import '../utils/nullable.dart'; // adjust path to wherever you put nullable.dart
 
 abstract class AnalyticsState extends Equatable {
   const AnalyticsState();
@@ -11,10 +14,11 @@ class AnalyticsInitial extends AnalyticsState {}
 
 class AnalyticsLoading extends AnalyticsState {
   final int tabIndex;
-  const AnalyticsLoading({required this.tabIndex});
-  
+  final bool isRevenueOnly;
+  const AnalyticsLoading({required this.tabIndex, this.isRevenueOnly = false});
+
   @override
-  List<Object?> get props => [tabIndex];
+  List<Object?> get props => [tabIndex, isRevenueOnly];
 }
 
 class AnalyticsLoaded extends AnalyticsState {
@@ -25,13 +29,22 @@ class AnalyticsLoaded extends AnalyticsState {
   final List<FlSpot> chartData;
   final List<dynamic> products;
   final List<dynamic> orders;
-  final List<dynamic> allOrders; // Recently fetched orders for display
-  final int totalOrderCount;    // Real ALL-TIME total from X-WP-Total header
-  final int thisMonthOrderCount; // Real THIS-MONTH total from X-WP-Total header
-  final int totalProductCount;   // Real ALL-TIME product count
+  final List<dynamic> allOrders;
+  final int totalOrderCount;
+  final int thisMonthOrderCount;
+  final int totalProductCount;
   final int tabIndex;
-  final Map<int, AnalyticsTabData> tabDataCache; // Cache data for each tab
-  
+  final Map<int, AnalyticsTabData> tabDataCache;
+
+  // Revenue report fields
+  final SalesReportModel? revenueReport;
+  final List<FlSpot>? reportChartSpots;
+  final List<String>? reportXLabels;
+  final RevenuePeriod? selectedPeriod;
+
+  // Dedicated flag so UI stays visible during revenue-only refresh
+  final bool isRevenueLoading;
+
   const AnalyticsLoaded(
     this.totalOrders, {
     required this.revenue,
@@ -46,8 +59,62 @@ class AnalyticsLoaded extends AnalyticsState {
     required this.totalProductCount,
     required this.tabIndex,
     required this.tabDataCache,
+    this.revenueReport,
+    this.reportChartSpots,
+    this.reportXLabels,
+    this.selectedPeriod,
+    this.isRevenueLoading = false,
   });
-  
+
+  AnalyticsLoaded copyWith({
+    double? revenue,
+    double? netSales,
+    double? totalOrders,
+    double? percentageChange,
+    List<FlSpot>? chartData,
+    List<dynamic>? products,
+    List<dynamic>? orders,
+    List<dynamic>? allOrders,
+    int? totalOrderCount,
+    int? thisMonthOrderCount,
+    int? totalProductCount,
+    int? tabIndex,
+    Map<int, AnalyticsTabData>? tabDataCache,
+    // Nullable<T> wrappers allow explicitly passing null to clear these fields
+    Nullable<SalesReportModel?>? revenueReport,
+    Nullable<List<FlSpot>?>? reportChartSpots,
+    Nullable<List<String>?>? reportXLabels,
+    Nullable<RevenuePeriod?>? selectedPeriod,
+    bool? isRevenueLoading,
+  }) {
+    return AnalyticsLoaded(
+      totalOrders ?? this.totalOrders,
+      revenue: revenue ?? this.revenue,
+      netSales: netSales ?? this.netSales,
+      percentageChange: percentageChange ?? this.percentageChange,
+      chartData: chartData ?? this.chartData,
+      products: products ?? this.products,
+      orders: orders ?? this.orders,
+      allOrders: allOrders ?? this.allOrders,
+      totalOrderCount: totalOrderCount ?? this.totalOrderCount,
+      thisMonthOrderCount: thisMonthOrderCount ?? this.thisMonthOrderCount,
+      totalProductCount: totalProductCount ?? this.totalProductCount,
+      tabIndex: tabIndex ?? this.tabIndex,
+      tabDataCache: tabDataCache ?? this.tabDataCache,
+      revenueReport:
+          revenueReport != null ? revenueReport.value : this.revenueReport,
+      reportChartSpots:
+          reportChartSpots != null
+              ? reportChartSpots.value
+              : this.reportChartSpots,
+      reportXLabels:
+          reportXLabels != null ? reportXLabels.value : this.reportXLabels,
+      selectedPeriod:
+          selectedPeriod != null ? selectedPeriod.value : this.selectedPeriod,
+      isRevenueLoading: isRevenueLoading ?? this.isRevenueLoading,
+    );
+  }
+
   @override
   List<Object?> get props => [
     revenue,
@@ -63,6 +130,11 @@ class AnalyticsLoaded extends AnalyticsState {
     tabIndex,
     totalOrders,
     tabDataCache,
+    revenueReport,
+    reportChartSpots,
+    reportXLabels,
+    selectedPeriod,
+    isRevenueLoading,
   ];
 }
 
@@ -74,7 +146,6 @@ class AnalyticsError extends AnalyticsState {
   List<Object?> get props => [message, tabIndex];
 }
 
-// Data structure to cache tab-specific data
 class AnalyticsTabData extends Equatable {
   final double revenue;
   final double netSales;
@@ -84,7 +155,7 @@ class AnalyticsTabData extends Equatable {
   final List<dynamic> products;
   final List<dynamic> orders;
   final DateTime lastUpdated;
-  
+
   const AnalyticsTabData({
     required this.revenue,
     required this.netSales,
@@ -95,7 +166,7 @@ class AnalyticsTabData extends Equatable {
     required this.orders,
     required this.lastUpdated,
   });
-  
+
   @override
   List<Object?> get props => [
     revenue,

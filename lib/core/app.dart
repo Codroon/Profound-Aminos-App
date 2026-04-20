@@ -47,7 +47,15 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<GorgiasBloc>()),
         BlocProvider(create: (_) => di.sl<ReachShipBloc>()),
         BlocProvider(
-          create: (_) => di.sl<ProductBloc>()..add(const FetchProducts(page: 1, perPage: 20, forceRefresh: true)),
+          create:
+              (_) =>
+                  di.sl<ProductBloc>()..add(
+                    const FetchProducts(
+                      page: 1,
+                      perPage: 20,
+                      forceRefresh: true,
+                    ),
+                  ),
         ),
       ],
       child: ValueListenableBuilder<ThemeMode>(
@@ -66,7 +74,9 @@ class App extends StatelessWidget {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(
                     body: Center(
-                      child: CustomLoadingWidget(text: 'Loading... Please wait'),
+                      child: CustomLoadingWidget(
+                        text: 'Loading... Please wait',
+                      ),
                     ),
                   );
                 }

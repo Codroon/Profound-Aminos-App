@@ -3,25 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
+import 'package:woo_management_app/features/analytics/models/revenue_period.dart';
 import 'package:woo_management_app/widgets/animated_dots.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
-/// Shared period enum — same options as product performance.
-enum RevenuePeriod {
-  today('Today'),
-  thisWeek('This Week'),
-  thisMonth('This Month'),
-  thisYear('This Year'),
-  allTime('All Time');
-
-  const RevenuePeriod(this.label);
-  final String label;
-}
 
 class RevenueChartCard extends StatelessWidget {
   final RevenuePeriod period;
   final double revenue;
-  final int totalOrders;       // ALL-time order count
+  final int totalOrders;  
   final List<FlSpot> chartSpots;
   final List<String> xLabels;
   final ValueChanged<RevenuePeriod> onPeriodChanged;
