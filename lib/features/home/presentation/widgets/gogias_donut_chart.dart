@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:woo_management_app/core/theme/app_colors.dart';
 
 class OrderDonutChart extends StatelessWidget {
   final double total;
@@ -15,11 +16,6 @@ class OrderDonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textColor = Colors.white;
-
-    final totalSum = values.values.fold(0.0, (a, b) => a + b);
-
     return Column(
       children: [
         SizedBox(
@@ -53,15 +49,18 @@ class OrderDonutChart extends StatelessWidget {
                 children: [
                   Text(
                     '\$${total.toStringAsFixed(0)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Total',
-                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -69,13 +68,16 @@ class OrderDonutChart extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        Divider(color: Colors.white10),
+        Divider(color: AppColors.border.withOpacity(0.1)),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
           children:
               values.keys.map((label) {
                 return Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 10,
@@ -88,8 +90,8 @@ class OrderDonutChart extends StatelessWidget {
                     ),
                     Text(
                       label,
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),

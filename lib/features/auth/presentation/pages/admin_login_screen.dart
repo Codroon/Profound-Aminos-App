@@ -179,7 +179,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.08),
                         blurRadius: 16,
-                        offset: const Offset(0, 8),
+                        offset: Offset(0, 8),
                       ),
                     ],
                   ),
@@ -203,7 +203,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomTextField(
                         controller: _emailController,
                         // label: 'Email',
@@ -215,7 +215,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                                     ? 'Email required'
                                     : null,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       CustomTextField(
                         controller: _passwordController,
                         // label: 'Password',

@@ -15,9 +15,9 @@ class GorgiasRevenueCard extends StatefulWidget {
 
 class _GorgiasRevenueCardState extends State<GorgiasRevenueCard> {
   int selectedTabIndex = 0;
-  final Color selectedTabColor = Colors.white;
-  final Color unselectedTabColor = AppColors.greyB3;
   final tabLabels = const ['Today', 'Last Week', 'Last Month'];
+
+  Color get selectedTabColor => AppColors.textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +31,14 @@ class _GorgiasRevenueCardState extends State<GorgiasRevenueCard> {
               text: 'Revenue',
               fontWeight: FontWeight.w700,
               fontSize: 22,
-              color: AppColors.greyB3,
+              color: AppColors.textPrimary,
             ),
             Gap(21),
             CustomTabBar(
               tabLabels: tabLabels,
               selectedTabIndex: selectedTabIndex,
               selectedTabColor: selectedTabColor,
-              unselectedTabColor: unselectedTabColor,
+              unselectedTabColor: AppColors.greyB3,
               onTabChanged: (index) {
                 setState(() {
                   selectedTabIndex = index;

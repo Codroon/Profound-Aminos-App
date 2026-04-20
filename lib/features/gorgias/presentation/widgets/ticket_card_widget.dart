@@ -44,8 +44,8 @@ class TicketCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(ticket.status);
     final statusTextColor = _getStatusTextColor(ticket.status);
-    final customerName = ticket.customer?.name ?? 'Unknown Customer';
-    final avatarUrl = ticket.customer?.avatar;
+    final customerName = ticket.customer.name ?? 'Unknown Customer';
+    final avatarUrl = ticket.customer.avatar;
 
     return InkWell(
       onTap: onTap,
@@ -72,7 +72,7 @@ class TicketCardWidget extends StatelessWidget {
                         customerName.isNotEmpty
                             ? customerName[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -80,7 +80,7 @@ class TicketCardWidget extends StatelessWidget {
                       )
                       : null,
             ),
-            const Gap(16),
+            Gap(16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +100,7 @@ class TicketCardWidget extends StatelessWidget {
                               ),
                             ),
                             if (ticket.isUnread) ...[
-                              const Gap(8),
+                              Gap(8),
                               Container(
                                 width: 8,
                                 height: 8,
@@ -124,7 +124,7 @@ class TicketCardWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Gap(4),
+                  Gap(4),
                   AppReusableText(
                     text: ticket.lastMessagePreview ?? '',
                     fontWeight: FontWeight.w400,
@@ -132,7 +132,7 @@ class TicketCardWidget extends StatelessWidget {
                     color: AppColors.greyA9,
                     maxLines: 2,
                   ),
-                  const Gap(8),
+                  Gap(8),
                   Row(
                     children: [
                       Container(
@@ -152,7 +152,7 @@ class TicketCardWidget extends StatelessWidget {
                         ),
                       ),
                       if (ticket.priority != 'normal') ...[
-                        const Gap(8),
+                        Gap(8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -177,7 +177,7 @@ class TicketCardWidget extends StatelessWidget {
                         ),
                       ],
                       if (ticket.channel.isNotEmpty) ...[
-                        const Gap(8),
+                        Gap(8),
                         Icon(
                           // ticket.channelIcon,
                           Icons.message,

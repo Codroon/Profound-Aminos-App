@@ -12,6 +12,7 @@ import '../features/auth/presentation/pages/admin_login_screen.dart';
 import '../features/reach_ship/bloc/reach_ship_bloc.dart';
 import '../widgets/custom_loading_widget.dart';
 import 'theme/app_theme.dart';
+import 'theme/app_colors.dart';
 import 'di/injection_container.dart' as di;
 import 'services/credential_initialization_service.dart';
 
@@ -49,30 +50,35 @@ class App extends StatelessWidget {
           create: (_) => di.sl<ProductBloc>()..add(const FetchProducts(page: 1, perPage: 20, forceRefresh: true)),
         ),
       ],
-      child: MaterialApp(
-        title: 'Profound Aminon',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        onGenerateRoute: AppRouter.generateRoute,
-        debugShowCheckedModeBanner: false,
-        home: FutureBuilder<bool>(
-          future: checkAndInitializeCredentials(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(
-                  child: CustomLoadingWidget(text: 'Loading... Please wait'),
-                ),
-              );
-            }
-            if (snapshot.data == true) {
-              return const BottomNavScreen();
-            } else {
-              return const AdminLoginPage();
-            }
-          },
-        ),
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: ThemeManager.themeModeNotifier,
+        builder: (context, themeMode, _) {
+          return MaterialApp(
+            title: 'Profound Aminon',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            onGenerateRoute: AppRouter.generateRoute,
+            debugShowCheckedModeBanner: false,
+            home: FutureBuilder<bool>(
+              future: checkAndInitializeCredentials(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(
+                      child: CustomLoadingWidget(text: 'Loading... Please wait'),
+                    ),
+                  );
+                }
+                if (snapshot.data == true) {
+                  return const BottomNavScreen();
+                } else {
+                  return const AdminLoginPage();
+                }
+              },
+            ),
+          );
+        },
       ),
     );
   }

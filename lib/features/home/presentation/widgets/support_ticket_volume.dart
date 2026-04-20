@@ -5,7 +5,6 @@ import 'package:woo_management_app/widgets/percent_badge.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/app_reusable_text.dart';
 import '../../../../widgets/custom_tab_bar.dart';
-import 'gogias_donut_chart.dart';
 
 class GorgiasSupportTicketCard extends StatefulWidget {
   const GorgiasSupportTicketCard({super.key});

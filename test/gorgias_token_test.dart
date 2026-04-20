@@ -1,9 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../lib/core/services/crediential_storage_service.dart';
-import '../lib/core/services/gorgias_debug_service.dart';
+import 'package:woo_management_app/core/services/crediential_storage_service.dart';
+import 'package:woo_management_app/core/services/gorgias_debug_service.dart';
 
 void main() {
   // Initialize Flutter bindings for tests
@@ -138,7 +137,7 @@ void main() {
           ];
           
           // Gorgias uses Basic Authentication: base64encode(USERNAME:API_KEY)
-          final credentials_encoded = base64Encode(utf8.encode('$username:$token'));
+          final credentialsEncoded = base64Encode(utf8.encode('$username:$token'));
           
           for (final endpoint in endpoints) {
             final url = 'https://$subdomain.gorgias.com/api$endpoint';
@@ -148,7 +147,7 @@ void main() {
               final response = await http.get(
                 Uri.parse(url),
                 headers: {
-                  'Authorization': 'Basic $credentials_encoded',
+                  'Authorization': 'Basic $credentialsEncoded',
                   'Accept': 'application/json',
                   'User-Agent': 'WooManagementApp/1.0',
                 },

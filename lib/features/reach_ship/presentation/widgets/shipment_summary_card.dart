@@ -49,7 +49,7 @@ class ShipmentSummaryCard extends StatelessWidget {
                 color: AppColors.primary,
                 size: 24,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Text(
                 'Shipment Summary',
                 style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
@@ -57,11 +57,11 @@ class ShipmentSummaryCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // Addresses Section
           _buildSectionHeader('Addresses', Icons.location_on_outlined),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,13 +73,13 @@ class ShipmentSummaryCard extends StatelessWidget {
                   AppColors.primary,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               Icon(
                 Icons.arrow_forward,
                 color: AppColors.textSecondary,
                 size: 20,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               Expanded(
                 child: _buildAddressCard('To', toAddress, AppColors.secondary),
               ),
@@ -122,7 +122,7 @@ class ShipmentSummaryCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,14 +152,14 @@ class ShipmentSummaryCard extends StatelessWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Shipping Options Section
           if (_hasShippingOptions()) ...[
             _buildSectionHeader('Shipping Options', Icons.tune_outlined),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             Container(
               padding: const EdgeInsets.all(12),
@@ -178,7 +178,7 @@ class ShipmentSummaryCard extends StatelessWidget {
                     ),
 
                   if (saturdayDelivery) ...[
-                    if (requireSignature) const SizedBox(height: 8),
+                    if (requireSignature) SizedBox(height: 8),
                     _buildOptionRow(
                       Icons.weekend_outlined,
                       'Saturday Delivery',
@@ -188,7 +188,7 @@ class ShipmentSummaryCard extends StatelessWidget {
 
                   if (insuranceRequired) ...[
                     if (requireSignature || saturdayDelivery)
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                     _buildOptionRow(
                       Icons.security_outlined,
                       'Insurance Coverage',
@@ -199,13 +199,13 @@ class ShipmentSummaryCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
 
           // Special Instructions
           if (specialInstructions.isNotEmpty) ...[
             _buildSectionHeader('Special Instructions', Icons.note_outlined),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             Container(
               width: double.infinity,
@@ -218,13 +218,13 @@ class ShipmentSummaryCard extends StatelessWidget {
               child: Text(specialInstructions, style: AppTextStyles.bodyMedium),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
 
           // Cost Breakdown
           if (selectedRate != null) ...[
             _buildSectionHeader('Cost Breakdown', Icons.receipt_outlined),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             Container(
               padding: const EdgeInsets.all(16),
@@ -238,16 +238,16 @@ class ShipmentSummaryCard extends StatelessWidget {
                   _buildCostRow('Shipping Cost', selectedRate!.rate),
 
                   if (insuranceRequired && insuranceValue > 0) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     _buildCostRow('Insurance', _calculateInsuranceCost()),
                   ],
 
                   if (saturdayDelivery) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     _buildCostRow('Saturday Delivery', 15.00), // Example fee
                   ],
 
-                  const Divider(color: AppColors.border, height: 24),
+                  Divider(color: AppColors.border, height: 24),
 
                   _buildCostRow(
                     'Total Cost',
@@ -267,7 +267,7 @@ class ShipmentSummaryCard extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, color: AppColors.textSecondary, size: 20),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Text(
           title,
           style: AppTextStyles.bodyMedium.copyWith(
@@ -300,7 +300,7 @@ class ShipmentSummaryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 label,
                 style: AppTextStyles.bodySmall.copyWith(
@@ -310,7 +310,7 @@ class ShipmentSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             address.name ?? '',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -318,7 +318,7 @@ class ShipmentSummaryCard extends StatelessWidget {
             ),
           ),
           if (address.company != null) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               address.company!,
               style: AppTextStyles.bodySmall.copyWith(
@@ -345,7 +345,7 @@ class ShipmentSummaryCard extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, color: AppColors.primary, size: 16),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

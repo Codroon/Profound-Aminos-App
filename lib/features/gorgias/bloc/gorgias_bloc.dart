@@ -15,7 +15,7 @@ class GorgiasBloc extends Bloc<GorgiasEvent, GorgiasState> {
   
   // Cache management
   static const Duration _cacheTimeout = Duration(minutes: 5);
-  Map<String, dynamic> _ticketCache = {};
+  final Map<String, dynamic> _ticketCache = {};
   DateTime? _lastTicketsFetch;
   Timer? _cacheTimer;
   

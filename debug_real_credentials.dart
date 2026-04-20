@@ -32,8 +32,8 @@ void main() async {
     // Test authentication with real credentials
     print('\n=== TESTING REAL AUTHENTICATION ===');
     
-    final credentials_encoded = base64Encode(utf8.encode('$username:$token'));
-    print('Basic Auth Header: Basic $credentials_encoded');
+    final credentialsEncoded = base64Encode(utf8.encode('$username:$token'));
+    print('Basic Auth Header: Basic $credentialsEncoded');
     
     final url = 'https://$subdomain.gorgias.com/api/account';
     print('Testing URL: $url');
@@ -41,7 +41,7 @@ void main() async {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Basic $credentials_encoded',
+        'Authorization': 'Basic $credentialsEncoded',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },

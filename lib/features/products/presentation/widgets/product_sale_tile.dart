@@ -41,7 +41,7 @@ class SalesItemWidget extends StatelessWidget {
                 ),
                 child: Icon(item.icon, color: iconColor, size: 48),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               // Product Details
               Expanded(
                 child: Column(
@@ -53,7 +53,7 @@ class SalesItemWidget extends StatelessWidget {
                       fontSize: 16,
                       color: AppColors.greyB3,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       'Sales : ${item.formattedSales}',
                       style: TextStyle(

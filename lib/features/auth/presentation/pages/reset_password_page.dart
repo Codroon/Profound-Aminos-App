@@ -14,8 +14,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+  final bool _isPasswordVisible = false;
+  final bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {

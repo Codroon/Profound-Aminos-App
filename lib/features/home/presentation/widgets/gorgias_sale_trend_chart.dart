@@ -18,17 +18,17 @@ class DailyPerformanceChart extends StatelessWidget {
   final double indicatorDotRadius;
   final double indicatorLineThickness;
 
-  const DailyPerformanceChart({
+  DailyPerformanceChart({
     super.key,
     required this.chartData,
     this.xAxisLabels = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    this.lineColor = AppColors.primary,
-    this.dotColor = Colors.white,
-    this.gridColor = const Color(0xFF383842),
-    this.axisLabelColor = Colors.white54,
-    this.touchedLineColor = AppColors.primary,
-    this.touchedSpotColor = Colors.white,
-    this.touchedAreaColor = const Color(0xFF3C3851),
+    this.lineColor,
+    this.dotColor,
+    this.gridColor,
+    this.axisLabelColor,
+    this.touchedLineColor,
+    this.touchedSpotColor,
+    this.touchedAreaColor,
     this.lineThickness = 3.0,
     this.dotRadius = 8.0,
     this.axisLabelFontSize = 12.0,
@@ -38,8 +38,14 @@ class DailyPerformanceChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveGridColor = gridColor ?? AppColors.border.withOpacity(0.1);
+    final effectiveAxisLabelColor = axisLabelColor ?? AppColors.textSecondary;
+    final effectiveLineColor = lineColor ?? AppColors.primary;
+    final effectiveDotColor = dotColor ?? AppColors.textPrimary;
+    final effectiveTouchedSpotColor = touchedSpotColor ?? AppColors.textPrimary;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       child: LineChart(
         LineChartData(
           gridData: FlGridData(
@@ -47,7 +53,7 @@ class DailyPerformanceChart extends StatelessWidget {
             drawHorizontalLine: false,
             drawVerticalLine: true,
             getDrawingVerticalLine: (value) {
-              return FlLine(color: gridColor, strokeWidth: 0.5);
+              return FlLine(color: effectiveGridColor, strokeWidth: 0.5);
             },
           ),
           titlesData: FlTitlesData(
@@ -66,7 +72,7 @@ class DailyPerformanceChart extends StatelessWidget {
                       child: Text(
                         xAxisLabels[index],
                         style: TextStyle(
-                          color: axisLabelColor,
+                          color: effectiveAxisLabelColor,
                           fontSize: axisLabelFontSize,
                         ),
                       ),
@@ -84,14 +90,14 @@ class DailyPerformanceChart extends StatelessWidget {
               spots: chartData,
               isCurved: true,
               barWidth: lineThickness,
-              color: lineColor,
+              color: effectiveLineColor,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, barData, index) {
                   if (index == 5) {
                     return FlDotCirclePainter(
                       radius: dotRadius,
-                      color: dotColor!,
+                      color: effectiveDotColor,
                       strokeWidth: 0,
                       strokeColor: Colors.transparent,
                     );
@@ -119,7 +125,7 @@ class DailyPerformanceChart extends StatelessWidget {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
                     '',
-                    TextStyle(color: Colors.transparent),
+                    const TextStyle(color: Colors.transparent),
                   );
                 }).toList();
               },
@@ -128,7 +134,7 @@ class DailyPerformanceChart extends StatelessWidget {
               return spotIndexes.map((index) {
                 return TouchedSpotIndicatorData(
                   FlLine(
-                    color: touchedLineColor,
+                    color: touchedLineColor ?? AppColors.primary,
                     strokeWidth: indicatorLineThickness,
                   ),
                   FlDotData(
@@ -136,7 +142,7 @@ class DailyPerformanceChart extends StatelessWidget {
                     getDotPainter: (spot, percent, bar, i) {
                       return FlDotCirclePainter(
                         radius: indicatorDotRadius,
-                        color: touchedSpotColor!,
+                        color: effectiveTouchedSpotColor,
                         strokeWidth: 2,
                         strokeColor: AppColors.primary,
                       );

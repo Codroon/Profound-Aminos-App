@@ -61,7 +61,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: const SharedAppbar(title: 'Track Shipment'),
+      appBar: SharedAppbar(title: 'Track Shipment'),
       body: BlocListener<ReachShipBloc, ReachShipState>(
         listener: (context, state) {
           if (state is TrackingUpdatesLoaded) {
@@ -102,7 +102,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
   Widget _buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
@@ -161,7 +161,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
       children: [
         // Tab Bar
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.cardDark,
             border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
@@ -192,7 +192,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
     return BlocBuilder<ReachShipBloc, ReachShipState>(
       builder: (context, state) {
         if (state is ReachShipLoading) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -326,7 +326,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
             child: Icon(statusIcon, color: statusColor, size: 32),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Status Text
           Text(
@@ -338,7 +338,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
 
           // Tracking Number
           Text(
@@ -348,7 +348,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Estimated Delivery
           if (_currentShipment != null) ...[
@@ -430,9 +430,9 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.search_off, size: 64, color: AppColors.textSecondary),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text('Enter a tracking number', style: AppTextStyles.h4),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Enter a tracking number above to view\nshipment details and tracking history',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -462,7 +462,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
   void _shareTracking() {
     // Implement sharing functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('Sharing functionality coming soon!'),
         backgroundColor: AppColors.primary,
       ),
@@ -475,8 +475,8 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
       builder:
           (context) => AlertDialog(
             backgroundColor: AppColors.cardDark,
-            title: const Text('Cancel Shipment', style: AppTextStyles.h4),
-            content: const Text(
+            title: Text('Cancel Shipment', style: AppTextStyles.h4),
+            content: Text(
               'Are you sure you want to cancel this shipment? This action cannot be undone.',
               style: AppTextStyles.bodyMedium,
             ),
@@ -512,7 +512,7 @@ class _ShipmentTrackingPageState extends State<ShipmentTrackingPage>
       // Note: ReachShip API doesn't support shipment cancellation
       // Use delete shipments functionality instead
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Shipment cancellation is not supported by ReachShip API. Use delete shipments instead.'),
           backgroundColor: AppColors.error,
         ),

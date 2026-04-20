@@ -43,12 +43,12 @@ class _SetupScreenState extends State<SetupScreen> {
 
       decoration: InputDecoration(
         labelText: label,
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 12,
           fontWeight: FontWeight.w400,
@@ -59,25 +59,25 @@ class _SetupScreenState extends State<SetupScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1),
+          borderSide: BorderSide(color: AppColors.primary, width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
+          borderSide: BorderSide(color: AppColors.error, width: 1),
         ),
-        errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
+        errorStyle: TextStyle(color: AppColors.error, fontSize: 12),
       ),
       obscureText: obscure,
       onSaved: (val) => creds[keyName] = val ?? '',
@@ -128,7 +128,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 builder: (context, state) {
                   final isLoading = state is AuthLoading;
                   return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: BouncingScrollPhysics(),
                     child: Column(
                       spacing: 16,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +146,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         _buildField('Gorgias Username', 'gorgiasUserName'),
 
                         // ReachShip Fields
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         Text(
                           'ReachShip Credentials',
                           style: TextStyle(
@@ -155,7 +155,7 @@ class _SetupScreenState extends State<SetupScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         _buildField('ReachShip Client ID', 'reachProClientId'),
                         _buildField(
                           'ReachShip Client Secret',
@@ -173,7 +173,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                         _buildField('ReachShip Environment', 'reachShipEnv'),
 
-                        const SizedBox(height: 30),
+                        SizedBox(height: 30),
 
                         // Firestore Options
                         Text(
@@ -184,7 +184,7 @@ class _SetupScreenState extends State<SetupScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
@@ -207,7 +207,7 @@ class _SetupScreenState extends State<SetupScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed:
@@ -335,7 +335,7 @@ class _SetupScreenState extends State<SetupScreen> {
           content: Row(
             children: [
               CircularProgressIndicator(color: AppColors.primary),
-              const SizedBox(width: 20),
+              SizedBox(width: 20),
               Expanded(
                 child: Text(
                   message,

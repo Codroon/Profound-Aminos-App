@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:woo_management_app/features/analytics/bloc/analytics_bloc.dart';
 import 'package:woo_management_app/features/analytics/bloc/analytics_event.dart';
 import 'package:woo_management_app/features/products/bloc/product_bloc.dart';

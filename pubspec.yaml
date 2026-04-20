@@ -45,6 +45,7 @@ dependencies:
   flutter_html: ^3.0.0
   # Image picker for selecting images from gallery/camera
   image_picker: ^1.1.2
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

@@ -113,7 +113,7 @@ class ProductCard extends StatelessWidget {
                         ),
               ),
 
-              const Gap(16),
+              Gap(16),
 
               // Product Details
               Expanded(
@@ -126,7 +126,7 @@ class ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       maxLines: 2,
                     ),
-                    const Gap(4),
+                    Gap(4),
 
                     // SKU
                     if (sku.isNotEmpty) ...[
@@ -135,7 +135,7 @@ class ProductCard extends StatelessWidget {
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
-                      const Gap(4),
+                      Gap(4),
                     ],
 
                     // Price
@@ -148,7 +148,7 @@ class ProductCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
                           ),
-                          const Gap(8),
+                          Gap(8),
                           Text(
                             '\$$regularPrice',
                             style: TextStyle(
@@ -167,11 +167,11 @@ class ProductCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const Gap(8),
+                    Gap(8),
                     Row(
                       children: [
                         _buildStatusChip(status),
-                        const Gap(8),
+                        Gap(8),
                         _buildStockChip(stockStatus, stockQuantity),
                       ],
                     ),

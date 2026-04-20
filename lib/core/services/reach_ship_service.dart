@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'crediential_storage_service.dart';

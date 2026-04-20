@@ -287,7 +287,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   elevation: 4.0,
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    constraints: const BoxConstraints(maxHeight: 200),
+                    constraints: BoxConstraints(maxHeight: 200),
                     width: MediaQuery.of(context).size.width - 32,
                     decoration: BoxDecoration(
                       color: AppColors.cardDark,
@@ -353,7 +353,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 activeColor: AppColors.primary,
                 checkColor: Colors.white,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'This is a residential address',
@@ -365,7 +365,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             ],
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
 
           // Address Type Info
           Container(
@@ -382,7 +382,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   size: 16,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Residential addresses may have different shipping rates and delivery options.',

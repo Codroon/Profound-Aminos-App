@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 /// Simple token format checker that doesn't depend on Flutter
 /// This will help us understand the token format issue

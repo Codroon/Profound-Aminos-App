@@ -16,30 +16,46 @@ class UserAvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 220,
-      child: Row(
-        children: [
-          CircleAvatar(radius: 24, backgroundImage: AssetImage(userImage)),
-          const Gap(12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppReusableText(
-                text: 'Welcome Back to!',
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-              AppReusableText(
-                text: text,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.info,
-              ),
-            ],
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Colors.purple, Colors.blue, Colors.red],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ],
-      ),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.backgroundDark,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Image.asset(userImage),
+            ),
+          ),
+        ),
+        const Gap(16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppReusableText(
+              text: 'Welcome Back to!',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+            AppReusableText(
+              text: text,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

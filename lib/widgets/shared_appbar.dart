@@ -7,7 +7,7 @@ class SharedAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Function()? onLeading;
   final String? desc;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final bool? automaticallyImplyLeading;
   final bool? centerTitle;
 
@@ -17,7 +17,7 @@ class SharedAppbar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.onLeading,
     this.desc,
-    this.backgroundColor = AppColors.backgroundDark,
+    this.backgroundColor,
     this.automaticallyImplyLeading = true,
     this.actions,
     this.centerTitle = true,
@@ -28,8 +28,8 @@ class SharedAppbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       actions: actions,
       centerTitle: centerTitle,
-      backgroundColor: backgroundColor,
-      surfaceTintColor: backgroundColor,
+      backgroundColor: backgroundColor ?? AppColors.backgroundDark,
+      surfaceTintColor: backgroundColor ?? AppColors.backgroundDark,
       automaticallyImplyLeading: automaticallyImplyLeading ?? true,
       titleSpacing: 0,
       elevation: 0,
@@ -37,11 +37,11 @@ class SharedAppbar extends StatelessWidget implements PreferredSizeWidget {
           (automaticallyImplyLeading ?? true)
               ? IconButton(
                 onPressed: onLeading ?? () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   weight: 600,
                   size: 20,
-                  color: AppColors.surfaceLight,
+                  color: AppColors.textPrimary,
                 ),
               )
               : null,

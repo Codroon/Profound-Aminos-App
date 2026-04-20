@@ -41,7 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final wooOK = await tester.testWooCommerce();
       final wpOK = await tester.testWordPress();
       final gorgiasOK = await tester.testGorgias();
-      print('[AuthBloc] WooCommerce OK: ${wooOK}, WordPress OK: ${wpOK}, Gorgias OK: ${gorgiasOK}');
+      print('[AuthBloc] WooCommerce OK: $wooOK, WordPress OK: $wpOK, Gorgias OK: $gorgiasOK');
       if (wooOK) {
         emit(AuthSuccess());
       } else {

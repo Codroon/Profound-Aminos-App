@@ -284,98 +284,63 @@ class ReachShipError extends ReachShipState {
 
 class ShippingRatesError extends ReachShipError {
   const ShippingRatesError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class ShipmentError extends ReachShipError {
   const ShipmentError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class LabelError extends ReachShipError {
   const LabelError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class TrackingError extends ReachShipError {
   const TrackingError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class PickupError extends ReachShipError {
   const PickupError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class AddressValidationError extends ReachShipError {
   const AddressValidationError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }
 
 class CarrierError extends ReachShipError {
   const CarrierError({
-    required String message,
-    String? errorCode,
-    dynamic error,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          errorCode: errorCode,
-          error: error,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    super.errorCode,
+    super.error,
+    super.stackTrace,
+  });
 }

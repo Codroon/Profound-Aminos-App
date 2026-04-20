@@ -31,9 +31,9 @@ class GorgiasSalesTrendCard extends StatelessWidget {
               text: 'Sales Trend',
               fontWeight: FontWeight.w700,
               fontSize: 22,
-              color: AppColors.greyB3,
+              color: AppColors.textPrimary,
             ),
-            const Gap(25),
+            Gap(25),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

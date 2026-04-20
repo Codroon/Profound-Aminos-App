@@ -74,9 +74,9 @@ class _GorgiasCardState extends State<GorgiasCard> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Iconsax.element_4_outline,
-                  color: Colors.white,
+                  color: AppColors.primary,
                   size: 24,
                 ),
                 const SizedBox(width: 8),
@@ -84,6 +84,7 @@ class _GorgiasCardState extends State<GorgiasCard> {
                   text: 'Gorgias',
                   fontWeight: FontWeight.w700,
                   fontSize: 15,
+                  color: AppColors.textPrimary,
                 ),
               ],
             ),
@@ -112,52 +113,79 @@ class _GorgiasCardState extends State<GorgiasCard> {
                       stats.totalTickets > 0 ? stats.totalTickets : 1;
                   final openProgress = stats.openTickets / totalTickets;
                   final closedProgress = stats.closedTickets / totalTickets;
-                  log(
-                    "🔓Open Tickets: ${stats.openTickets}, 🔐Closed Tickets: ${stats.closedTickets},🗿 Total Tickets: $totalTickets",
-                  );
+                  
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Gap(12),
                       // Open Tickets
-                      const Text(
-                        'Open',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppReusableText(
+                            text: 'Open',
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                          AppReusableText(
+                            text: stats.openTickets.toString(),
+                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
                       ),
+                      const Gap(8),
                       CustomProgressBar(
                         progress: openProgress,
-                        value: stats.openTickets.toString(),
-                        color: Colors.white,
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        value: '',
+                        color: Colors.orange,
+                        backgroundColor: AppColors.backgroundDark,
                       ),
-                      const Text(
-                        'Closed',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      const Gap(16),
+                      // Closed Tickets
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppReusableText(
+                            text: 'Closed',
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                          AppReusableText(
+                            text: stats.closedTickets.toString(),
+                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
                       ),
-                      const Gap(2),
+                      const Gap(8),
                       CustomProgressBar(
                         progress: closedProgress,
-                        value: stats.closedTickets.toString(),
-                        color: const Color(0xFF00ADB5),
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        value: '',
+                        color: Colors.green,
+                        backgroundColor: AppColors.backgroundDark,
                       ),
                     ],
                   );
                 } else if (state is TicketStatsLoading) {
-                  return const Column(
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Loading...',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      AppReusableText(
+                        text: 'Loading...',
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
                       ),
-                      Gap(4),
+                      const Gap(4),
                       SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                            AppColors.primary,
                           ),
                         ),
                       ),
@@ -174,9 +202,10 @@ class _GorgiasCardState extends State<GorgiasCard> {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Error',
-                            style: TextStyle(color: Colors.red, fontSize: 10),
+                          const AppReusableText(
+                            text: 'Error',
+                            color: Colors.red,
+                            fontSize: 10,
                           ),
                           const SizedBox(width: 4),
                           SizedBox(
@@ -191,9 +220,10 @@ class _GorgiasCardState extends State<GorgiasCard> {
                           ),
                         ],
                       ),
-                      const Text(
-                        'Retrying...',
-                        style: TextStyle(color: Colors.red, fontSize: 8),
+                      const AppReusableText(
+                        text: 'Retrying...',
+                        color: Colors.red,
+                        fontSize: 8,
                       ),
                     ],
                   );
@@ -212,12 +242,10 @@ class _GorgiasCardState extends State<GorgiasCard> {
                       // Open Tickets
                       Row(
                         children: [
-                          const Text(
-                            'Open',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
+                          AppReusableText(
+                            text: 'Open',
+                            color: AppColors.textSecondary,
+                            fontSize: 10,
                           ),
                           const SizedBox(width: 4),
                           SizedBox(
@@ -226,7 +254,7 @@ class _GorgiasCardState extends State<GorgiasCard> {
                             child: CircularProgressIndicator(
                               strokeWidth: 1,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white70,
+                                AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -235,24 +263,26 @@ class _GorgiasCardState extends State<GorgiasCard> {
                       CustomProgressBar(
                         progress: 0.45,
                         value: '--',
-                        color: Colors.white,
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        color: Colors.orange.withOpacity(0.5),
+                        backgroundColor: AppColors.backgroundDark,
                       ),
-                      const Text(
-                        'Closed',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      AppReusableText(
+                        text: 'Closed',
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
                       ),
                       const Gap(2),
                       CustomProgressBar(
                         progress: 0.70,
                         value: '--',
-                        color: const Color(0xFF00ADB5),
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        color: Colors.green.withOpacity(0.5),
+                        backgroundColor: AppColors.backgroundDark,
                       ),
                       const Gap(4),
-                      const Text(
-                        'Loading data...',
-                        style: TextStyle(color: Colors.white54, fontSize: 8),
+                      AppReusableText(
+                        text: 'Loading data...',
+                        color: AppColors.textSecondary,
+                        fontSize: 8,
                       ),
                     ],
                   );

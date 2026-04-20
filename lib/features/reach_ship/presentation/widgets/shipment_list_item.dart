@@ -53,7 +53,7 @@ class ShipmentListItem extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
 
                     // Tracking Number
                     Expanded(
@@ -94,8 +94,8 @@ class ShipmentListItem extends StatelessWidget {
                                     size: 16,
                                     color: AppColors.textSecondary,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text('Edit'),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
                                 ],
                               ),
                             ),
@@ -108,7 +108,7 @@ class ShipmentListItem extends StatelessWidget {
                                     size: 16,
                                     color: AppColors.error,
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Text(
                                     'Delete',
                                     style: TextStyle(color: AppColors.error),
@@ -121,7 +121,7 @@ class ShipmentListItem extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Status and Carrier Row
                 Row(
@@ -141,7 +141,7 @@ class ShipmentListItem extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(statusIcon, size: 12, color: statusColor),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             _getStatusDisplayText(
                               shipment.status.toString() ?? 'unknown',
@@ -156,30 +156,30 @@ class ShipmentListItem extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
 
                     // Carrier
-                    if (shipment.selectedRate.carrierName != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          shipment.selectedRate.carrierName,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primary,
-                            fontSize: 10,
-                          ),
+                    ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        shipment.selectedRate.carrierName,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 10,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
 
-                    const Spacer(),
+                    Spacer(),
 
                     // Cost
                     Text(
@@ -192,7 +192,7 @@ class ShipmentListItem extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Addresses Row
                 Row(
@@ -233,7 +233,7 @@ class ShipmentListItem extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Footer Row
                 Row(
@@ -244,7 +244,7 @@ class ShipmentListItem extends StatelessWidget {
                       size: 14,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       '${shipment.packages.length} package${shipment.packages.length != 1 ? 's' : ''}',
                       style: AppTextStyles.bodySmall.copyWith(
@@ -252,7 +252,7 @@ class ShipmentListItem extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
 
                     // Created Date
                     Icon(
@@ -260,7 +260,7 @@ class ShipmentListItem extends StatelessWidget {
                       size: 14,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       _formatDate(shipment.createdAt),
                       style: AppTextStyles.bodySmall.copyWith(
@@ -268,7 +268,7 @@ class ShipmentListItem extends StatelessWidget {
                       ),
                     ),
 
-                    const Spacer(),
+                    Spacer(),
 
                     // Estimated Delivery
                     if (shipment.selectedRate.deliveryDate != null) ...[
@@ -277,7 +277,7 @@ class ShipmentListItem extends StatelessWidget {
                         size: 14,
                         color: AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         'Est. ${_formatDate(shipment.selectedRate.deliveryDate!)}',
                         style: AppTextStyles.bodySmall.copyWith(
@@ -307,7 +307,7 @@ class ShipmentListItem extends StatelessWidget {
         Row(
           children: [
             Icon(icon, size: 12, color: AppColors.textSecondary),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Text(
               label,
               style: AppTextStyles.bodySmall.copyWith(
@@ -317,7 +317,7 @@ class ShipmentListItem extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           name,
           style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500),

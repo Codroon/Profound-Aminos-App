@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
-import 'package:woo_management_app/features/products/presentation/widgets/product_sale_tile.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
 import '../../../../widgets/custom_tab_bar.dart';
@@ -129,7 +128,7 @@ class SalesItemWidget extends StatelessWidget {
                       )
                     : Icon(item.icon, color: iconColor, size: 48),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               // Product Details
               Expanded(
                 child: Column(
@@ -141,7 +140,7 @@ class SalesItemWidget extends StatelessWidget {
                       fontSize: 16,
                       color: AppColors.greyB3,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       'Sales : ${item.formattedSales}',
                       style: TextStyle(

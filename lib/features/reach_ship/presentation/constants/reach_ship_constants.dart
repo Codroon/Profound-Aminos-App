@@ -41,7 +41,7 @@ class ReachShipConstants {
   static const Duration longAnimation = Duration(milliseconds: 500);
 
   // Carrier Colors
-  static const Map<String, Color> carrierColors = {
+  static Map<String, Color> get carrierColors => {
     'FedEx': Color(0xFF4D148C),
     'UPS': Color(0xFF8B4513),
     'USPS': Color(0xFF1E3A8A),

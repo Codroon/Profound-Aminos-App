@@ -5,7 +5,6 @@ import '../../models/shipment.dart';
 import '../../models/address.dart';
 import '../../models/package.dart';
 import '../../models/shipping_rate.dart';
-import '../../models/tracking_update.dart';
 
 class ReachShipUtils {
   // Date Formatting

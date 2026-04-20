@@ -25,7 +25,10 @@ class AnalyticsLoaded extends AnalyticsState {
   final List<FlSpot> chartData;
   final List<dynamic> products;
   final List<dynamic> orders;
-  final List<dynamic> allOrders; // All orders without time filtering
+  final List<dynamic> allOrders; // Recently fetched orders for display
+  final int totalOrderCount;    // Real ALL-TIME total from X-WP-Total header
+  final int thisMonthOrderCount; // Real THIS-MONTH total from X-WP-Total header
+  final int totalProductCount;   // Real ALL-TIME product count
   final int tabIndex;
   final Map<int, AnalyticsTabData> tabDataCache; // Cache data for each tab
   
@@ -38,6 +41,9 @@ class AnalyticsLoaded extends AnalyticsState {
     required this.products,
     required this.orders,
     required this.allOrders,
+    required this.totalOrderCount,
+    required this.thisMonthOrderCount,
+    required this.totalProductCount,
     required this.tabIndex,
     required this.tabDataCache,
   });
@@ -51,6 +57,9 @@ class AnalyticsLoaded extends AnalyticsState {
     products,
     orders,
     allOrders,
+    totalOrderCount,
+    thisMonthOrderCount,
+    totalProductCount,
     tabIndex,
     totalOrders,
     tabDataCache,

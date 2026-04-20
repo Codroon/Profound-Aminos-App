@@ -4,9 +4,9 @@ import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/gorgias_dashboard.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
-import '../../../profile/presentation/pages/credential_set_up_screen.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../word_press/presentation/pages/word_press_posts_page.dart';
+import '../../../reach_ship/presentation/pages/reach_ship_main_page.dart';
 import 'home_page.dart';
 
 class BottomNavScreen extends StatefulWidget {
@@ -21,6 +21,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   final List<Widget> _screens = const [
     HomePage(),
+    ReachShipMainPage(),
     GorgiasDashboard(),
     WordPressPostsPage(),
     ProfilePage(),
@@ -29,50 +30,50 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.backgroundDark,
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
-        height: 55,
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF252533),
-          borderRadius: BorderRadius.circular(38),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3), // changes position of shadow
+          color: AppColors.cardDark,
+          border: Border(
+            top: BorderSide(
+              color: AppColors.border.withOpacity(0.1),
+              width: 0.5,
             ),
-          ],
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Iconsax.chart_1_outline,
-              label: 'Dashboard',
-              index: 0,
-              context: context,
-            ),
-            _buildNavItem(
-              icon: Iconsax.support_outline,
-              label: 'Support',
-              index: 1,
-              context: context,
-            ),
-            _buildNavItem(
-              icon: Iconsax.tag_outline,
-              label: 'WordPress',
-              index: 2,
-              context: context,
-            ),
-            _buildNavItem(
-              icon: Iconsax.setting_outline,
-              label: 'Profile',
-              index: 3,
-              context: context,
-            ),
-          ],
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: Iconsax.grid_1_bold,
+                label: 'Dashboard',
+                index: 0,
+              ),
+              _buildNavItem(
+                icon: Iconsax.truck_outline,
+                label: 'Shipping',
+                index: 1,
+              ),
+              _buildNavItem(
+                icon: Iconsax.support_outline,
+                label: 'Support',
+                index: 2,
+              ),
+              _buildNavItem(
+                icon: Iconsax.document_text_outline,
+                label: 'WordPress',
+                index: 3,
+              ),
+              _buildNavItem(
+                icon: Iconsax.setting_2_outline,
+                label: 'Settings',
+                index: 4,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -82,47 +83,38 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     required IconData icon,
     required String label,
     required int index,
-    required BuildContext context,
   }) {
     final bool isSelected = _currentIndex == index;
-    final Color selectedColor = AppColors.primary;
-    final Color unselectedColor = AppColors.surfaceLight;
+    final Color color = isSelected ? AppColors.primary : AppColors.textSecondary;
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => setState(() => _currentIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding:
-            isSelected
-                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 10)
-                : const EdgeInsets.all(0),
-        decoration:
-            isSelected
-                ? BoxDecoration(
-                  color: selectedColor,
-                  borderRadius: BorderRadius.circular(38),
-                )
-                : null,
-        child:
-            isSelected
-                ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, color: unselectedColor, size: 24),
-                    const SizedBox(width: 8),
-                    AppReusableText(
-                      text: label,
-                      fontSize: 15,
-                      color: unselectedColor,
-                    ),
-                  ],
-                )
-                : CircleAvatar(
-                  radius: 20,
-                  backgroundColor: unselectedColor,
-                  child: Icon(icon, color: Colors.black, size: 24),
-                ),
+      highlightColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary.withOpacity(0.2) : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 4),
+          AppReusableText(
+            text: label,
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: color,
+          ),
+        ],
       ),
     );
   }

@@ -39,11 +39,11 @@ class _RegisterFormState extends State<RegisterForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Only support Username Register',
             style: TextStyle(color: AppColors.surfaceLight, fontSize: 12),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Username Field
           CustomTextField(
@@ -52,7 +52,7 @@ class _RegisterFormState extends State<RegisterForm> {
             prefixIcon: Icons.person_outline,
             validator: Validators.validateUsername,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Password Field
           CustomTextField(
@@ -107,7 +107,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
                 activeColor: AppColors.success,
                 checkColor: Colors.white,
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: AppColors.border),
               ),
               Expanded(
                 child: Padding(
@@ -162,7 +162,7 @@ class _RegisterFormState extends State<RegisterForm> {
       crossAxisAlignment: CrossAxisAlignment.center,
 
       children: [
-        const Text(
+        Text(
           'Strength',
           style: TextStyle(color: AppColors.surfaceLight, fontSize: 12),
         ),
@@ -244,11 +244,11 @@ class _RegisterFormState extends State<RegisterForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Only support Username Register',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Username Field
               CustomTextField(
@@ -257,7 +257,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 prefixIcon: Icons.person_outline,
                 validator: Validators.validateUsername,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Password Field
               CustomTextField(
@@ -280,11 +280,11 @@ class _RegisterFormState extends State<RegisterForm> {
                 obscureText: !_isPasswordVisible,
                 validator: Validators.validatePassword,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Strength Indicator
               _buildPasswordStrength(),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Phone Number Field
               Row(
@@ -308,19 +308,19 @@ class _RegisterFormState extends State<RegisterForm> {
                             borderRadius: BorderRadius.circular(2),
                             color: Colors.green,
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text('🇧🇷', style: TextStyle(fontSize: 10)),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        SizedBox(width: 8),
+                        Text(
                           '+55',
                           style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 16,
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down,
                           color: AppColors.textSecondary,
                           size: 20,
@@ -362,9 +362,9 @@ class _RegisterFormState extends State<RegisterForm> {
                     },
                     activeColor: AppColors.success,
                     checkColor: Colors.white,
-                    side: const BorderSide(color: AppColors.border),
+                    side: BorderSide(color: AppColors.border),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(top: 12),
                       child: Text(
@@ -405,7 +405,7 @@ class _RegisterFormState extends State<RegisterForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Strength',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),

@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -171,7 +170,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                               'Loading tickets...',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey.shade400,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -179,7 +178,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                               'Found ${state.stats.totalTickets} total tickets',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey.shade500,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -212,7 +211,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -220,7 +219,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                               state.message,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey.shade400,
+                                color: AppColors.textSecondary,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -279,12 +278,12 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
           children: [
             Icon(Iconsax.ticket_outline, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No tickets found',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -292,7 +291,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
               _currentFilter.hasActiveFilters
                   ? 'Try adjusting your filters'
                   : 'No tickets available',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -402,7 +401,7 @@ class _TicketFilterBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
                 color:
-                    isSelected ? const Color(0xFF314158) : AppColors.cardDark,
+                    isSelected ? Color(0xFF314158) : AppColors.cardDark,
                 borderRadius: BorderRadius.circular(20),
                 border:
                     isSelected
@@ -412,7 +411,7 @@ class _TicketFilterBar extends StatelessWidget {
               child: Text(
                 filter['label']!,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 14,
                   letterSpacing: 0.2,

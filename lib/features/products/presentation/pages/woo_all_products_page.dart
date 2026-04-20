@@ -123,7 +123,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                 hintText: 'Search products...',
                 prefixIcon:
                     _isSearching
-                        ? const Icon(Icons.search, color: AppColors.primary)
+                        ? Icon(Icons.search, color: AppColors.primary)
                         : const Icon(Icons.search),
                 suffixIcon:
                     _searchController.text.isNotEmpty
@@ -137,7 +137,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                         : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -147,7 +147,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
+                  borderSide: BorderSide(
                     color: AppColors.primary,
                     width: 2,
                   ),
@@ -217,7 +217,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                         child: Row(
                           children: [
                             Icon(Icons.search, color: AppColors.primary),
-                            const Gap(8),
+                            Gap(8),
                             Expanded(
                               child: AppReusableText(
                                 text: 'Searching for "$_searchQuery"...',
@@ -225,7 +225,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                                 color: AppColors.primary,
                               ),
                             ),
-                            const SizedBox(
+                            SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(

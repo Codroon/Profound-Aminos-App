@@ -1,72 +1,87 @@
 import 'package:flutter/material.dart';
 
+class ThemeManager {
+  static final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier(ThemeMode.dark);
+  
+  static bool get isDarkMode => themeModeNotifier.value == ThemeMode.dark;
+  
+  static void toggleTheme() {
+    themeModeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
+  }
+}
+
 class AppColors {
-  // Primary Colors (Updated)
-  static const Color primary = Color(0xFF5D2DE6); // New primary color
-  static const Color primaryLight = Color(
-    0xFF8D79F6,
-  ); // Lighter purple (approx.)
-  static const Color primaryDark = Color(0xFF3B1ABB); // Darker purple
+  // Dark Mode Spec provided by user
+  static const Color _bgDark = Color(0xFF0F1220);
+  static const Color _cardDark = Color(0xFF15182B);
+  static const Color _textDark = Color(0xFFEAF0FF);
+  static const Color _subtextDark = Color(0xFF98A0B8);
+  static const Color _botBarBgDark = Color(0xFF15182B);
+  static const List<Color> _buttonGradientDark = [Color(0xFF6C4CF1), Color(0xFF8E6BFF)];
+  
+  // Light Mode Spec provided by user
+  static const Color _bgLight = Color(0xFFF7F8FA);
+  static const Color _cardLight = Color(0xFFFFFFFF);
+  static const Color _textLight = Color(0xFF1F2937);
+  static const Color _subtextLight = Color(0xFF6B7280); // standard grey
+  static const Color _buttonSolidLight = Color(0xFF6C3BFF);
 
-  // Secondary Colors (can be customized if needed)
-  static const Color secondary = Color(0xFFED5A4C);
-  static const Color secondaryLight = Color(0xFFFF9E68);
-  static const Color secondaryDark = Color(0xFFC43A00);
-  static const Color amber300 = Color(0xFFFFD230);
+  // Dynamic getters based on ThemeManager
+  static bool get _isDark => ThemeManager.isDarkMode;
 
-  // Background Colors
-  static const Color backgroundDark = Color(0xFF1e1f28);
-  static const Color cardDark = Color(0xFF252533);
-  static const Color backgroundLight = Color(0xFFF5F5F5);
-  static const Color surfaceDark = Color(0xFF2A2B30);
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color greyB3 = Color(0xFFB3B3B3);
+  // Primary Colors
+  static Color get primary => _isDark ? const Color(0xFF6C4CF1) : _buttonSolidLight;
+  static Color get primaryLight => const Color(0xFF8D79F6);
+  static Color get primaryDark => const Color(0xFF3B1ABB);
+
+  // Secondary Colors
+  static Color get secondary => const Color(0xFFED5A4C);
+  static Color get secondaryLight => const Color(0xFFFF9E68);
+  static Color get secondaryDark => const Color(0xFFC43A00);
+  static Color get amber300 => const Color(0xFFFFD230);
+
+  // Background Colors (Dynamic)
+  static Color get backgroundDark => _isDark ? _bgDark : _bgLight;
+  static Color get cardDark => _isDark ? _cardDark : _cardLight;
+  static Color get backgroundLight => _isDark ? _bgDark : _bgLight;
+  static Color get surfaceDark => _isDark ? _cardDark : _cardLight;
+  static Color get surfaceLight => _isDark ? _cardDark : _cardLight;
+  static Color get greyB3 => _isDark ? _subtextDark : _subtextLight;
 
   // Game/Theme Accent Colors
-  static const Color multiplierGreen = Color(0xFF009440);
-  static const Color chartRed = Color(0xFFEB4E4E);
-  static const Color planeTrail = primary; // Match with primary
-  static const Color gridLine = Color(0xff5a5384);
+  static Color get multiplierGreen => const Color(0xFF009440);
+  static Color get chartRed => const Color(0xFFEB4E4E);
+  static Color get planeTrail => primary;
+  static Color get gridLine => const Color(0xff5a5384);
 
   // Status Colors
-  static const Color success = Color(0xFF009440);
-  static const Color error = Color(0xFFE53E3E);
-  static const Color warning = Color(0xFFF1E92B);
-  static const Color info = Color(0xFF6294E6);
+  static Color get success => const Color(0xFF009440);
+  static Color get error => const Color(0xFFE53E3E);
+  static Color get warning => const Color(0xFFF1E92B);
+  static Color get info => const Color(0xFF6294E6);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFE1E3E5);
-  static const Color whiteE4 = Color(0xFFE3E3E4);
+  // Text Colors (Dynamic)
+  static Color get textPrimary => _isDark ? _textDark : _textLight;
+  static Color get textSecondary => _isDark ? _subtextDark : _subtextLight;
+  static Color get whiteE4 => _isDark ? const Color(0xFFE3E3E4) : _textLight;
 
-  static const Color greyD9 = Color(0xFFD9D9D9);
-  static const Color greyA9 = Color(0xFF9F9FA9);
-  static const Color textDisabled = Color(0xFF53565B);
-  static const Color textPrimaryLight = Color(0xFF333333);
-  static const Color textSecondaryLight = Color(0xFF666666);
-  static const Color iconColor = Color(0xFF666E79);
-  static const Color grey9B = Color(0xFF9B9B9B);
-  static const Color black28 = Color(0xFF252628);
+  static Color get greyD9 => const Color(0xFFD9D9D9);
+  static Color get greyA9 => _isDark ? const Color(0xFF9F9FA9) : _subtextLight;
+  static Color get textDisabled => const Color(0xFF53565B);
+  static Color get textPrimaryLight => _isDark ? _textDark : _textLight;
+  static Color get textSecondaryLight => _isDark ? _subtextDark : _subtextLight;
+  static Color get iconColor => _isDark ? _subtextDark : _subtextLight;
+  static Color get grey9B => const Color(0xFF9B9B9B);
+  static Color get black28 => _isDark ? _bgDark : _bgLight;
 
   // Border Colors
-  static const Color border = Color(0xFF2D3748);
-  static const Color borderLight = Color(0xFFE2E8F0);
+  static Color get border => _isDark ? const Color(0xFF2D3748) : const Color(0xFFD1D5DB); // grey border
+  static Color get borderLight => _isDark ? const Color(0xFF2D3748) : const Color(0xFFE2E8F0);
 
-  // Gradient Colors (Updated to reflect purple theme)
-  static const List<Color> primaryGradient = [
-    Color(0xFFB09FFF),
-    Color(0xFF8D79F6),
-  ];
-
-  static const List<Color> secondaryGradient = [
-    Color(0xffB09FFF),
-    Color(0xff8D79F6),
-  ];
-
-  static const List<Color> backgroundGradient = [
-    Color(0xFF1D1E23),
-    Color(0xFF2A2B30),
-  ];
+  // Gradient Colors
+  static List<Color> get primaryGradient => _isDark ? _buttonGradientDark : [_buttonSolidLight, _buttonSolidLight];
+  static List<Color> get secondaryGradient => _isDark ? _buttonGradientDark : [_buttonSolidLight, _buttonSolidLight];
+  static List<Color> get backgroundGradient => _isDark ? [_bgDark, _bgDark] : [_bgLight, _bgLight];
 
   // Chart Colors
   static const List<Color> chartColors = [

@@ -97,12 +97,12 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: const SharedAppbar(title: 'Create Shipment'),
+      appBar: SharedAppbar(title: 'Create Shipment'),
       body: BlocListener<ReachShipBloc, ReachShipState>(
         listener: (context, state) {
           if (state is ShipmentCreated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Shipment created successfully!'),
                 backgroundColor: AppColors.success,
               ),
@@ -198,7 +198,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
             size: 20,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           label,
           style: AppTextStyles.caption.copyWith(
@@ -219,7 +219,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Shipment Details', style: AppTextStyles.h3),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Confirm or update the shipping addresses for your shipment.',
               style: AppTextStyles.bodyMedium.copyWith(
@@ -276,7 +276,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Package Information', style: AppTextStyles.h3),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Confirm or update package details and add shipping options.',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -313,7 +313,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                       color: AppColors.primary,
                       size: 24,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,7 +324,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             '${package.length}" × ${package.width}" × ${package.height}" • ${package.weight} lbs',
                             style: AppTextStyles.bodySmall.copyWith(
@@ -336,7 +336,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                     ),
                     IconButton(
                       onPressed: () => _removePackage(index),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
                         color: AppColors.error,
                         size: 20,
@@ -345,7 +345,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
           // Add Package Button
           Container(
@@ -366,7 +366,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           Container(
             padding: const EdgeInsets.all(16),
@@ -386,7 +386,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                   (value) => setState(() => _requireSignature = value),
                 ),
 
-                const Divider(color: AppColors.border),
+                Divider(color: AppColors.border),
 
                 // Saturday Delivery
                 _buildOptionTile(
@@ -397,7 +397,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                   (value) => setState(() => _saturdayDelivery = value),
                 ),
 
-                const Divider(color: AppColors.border),
+                Divider(color: AppColors.border),
 
                 // Insurance
                 _buildOptionTile(
@@ -454,7 +454,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
     return BlocBuilder<ReachShipBloc, ReachShipState>(
       builder: (context, state) {
         if (state is ReachShipLoading) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
@@ -466,7 +466,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Select Shipping Rate', style: AppTextStyles.h3),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Choose the best shipping option for your package.',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -490,7 +490,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                       isSelected: isSelected,
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           );
@@ -503,12 +503,12 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline, size: 64, color: AppColors.error),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     'Failed to load shipping rates',
                     style: AppTextStyles.bodyMedium,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     state.message,
                     style: AppTextStyles.bodySmall.copyWith(
@@ -552,14 +552,14 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Confirm Shipment', style: AppTextStyles.h3),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Review your shipment details before creating the label.',
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Selected Rate
           if (_selectedRate != null) ...[
@@ -569,9 +569,9 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             RateCard(rate: _selectedRate!, onSelect: () {}, isSelected: true),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
 
           // Shipment Summary
@@ -618,7 +618,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
     return Row(
       children: [
         Icon(icon, color: AppColors.textSecondary, size: 20),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +641,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
         ),
       ],
     );
@@ -650,7 +650,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
   Widget _buildBottomNavigation() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),

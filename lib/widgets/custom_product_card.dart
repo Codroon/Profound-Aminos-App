@@ -9,29 +9,29 @@ class ProductCard extends StatelessWidget {
   final String price;
   final String? stockStatus;
   final Color? stockStatusColor;
-  final Color backgroundColor;
-  final Color textColor;
-  final Color subtitleColor;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? subtitleColor;
   final dynamic productIcon;
-  final Color productIconColor;
+  final Color? productIconColor;
   final List<ActionButton> actionButtons;
   final VoidCallback? onTap;
   final BorderRadius borderRadius;
   final EdgeInsets padding;
   final double elevation;
 
-  const ProductCard({
+  ProductCard({
     super.key,
     required this.productName,
     required this.category,
     required this.price,
     this.stockStatus,
     this.stockStatusColor,
-    this.backgroundColor = const Color(0xFF2D2D3F),
-    this.textColor = Colors.white,
-    this.subtitleColor = AppColors.greyB3,
+    this.backgroundColor,
+    this.textColor,
+    this.subtitleColor,
     this.productIcon = Icons.shopping_bag_outlined,
-    this.productIconColor = AppColors.secondary,
+    this.productIconColor,
     this.actionButtons = const [],
     this.onTap,
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
@@ -43,7 +43,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: elevation,
-      color: backgroundColor,
+      color: backgroundColor ?? AppColors.cardDark,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
       child: InkWell(
         onTap: onTap,
@@ -57,12 +57,12 @@ class ProductCard extends StatelessWidget {
                 width: 78,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: productIconColor.withOpacity(0.15),
+                  color: (productIconColor ?? AppColors.secondary).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: SharedDynamicIcon(
                   productIcon,
-                  color: productIconColor,
+                  color: productIconColor ?? AppColors.secondary,
                   weight: 71,
                   height: 71,
                 ),
@@ -81,14 +81,14 @@ class ProductCard extends StatelessWidget {
                           child: Text(
                             productName,
                             style: TextStyle(
-                              color: textColor,
+                              color: textColor ?? AppColors.textPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                         if (stockStatus != null) ...[
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -100,7 +100,7 @@ class ProductCard extends StatelessWidget {
                             ),
                             child: Text(
                               stockStatus!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -110,17 +110,16 @@ class ProductCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     // Category
                     Text(
                       'Category: $category',
                       style: TextStyle(
-                        color: subtitleColor,
+                        color: subtitleColor ?? AppColors.greyB3,
                         fontSize: 14,
-                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     // Price
                     Row(
                       children: [
@@ -128,7 +127,7 @@ class ProductCard extends StatelessWidget {
                           child: Text(
                             'Price: $price',
                             style: TextStyle(
-                              color: subtitleColor,
+                              color: subtitleColor ?? AppColors.greyB3,
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                             ),

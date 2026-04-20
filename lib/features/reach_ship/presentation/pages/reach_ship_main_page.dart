@@ -34,7 +34,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: const SharedAppbar(
+      appBar: SharedAppbar(
         title: 'ReachShip',
         automaticallyImplyLeading: false,
         centerTitle: true,
@@ -72,7 +72,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: AppColors.primaryGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -103,7 +103,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Overview', style: AppTextStyles.h4),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -114,7 +114,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: ShippingOverviewCard(
                 title: 'In Transit',
@@ -125,7 +125,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -136,7 +136,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
                 color: AppColors.success,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: ShippingOverviewCard(
                 title: 'Pending',
@@ -156,10 +156,10 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Quick Actions', style: AppTextStyles.h4),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         GridView.count(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
@@ -304,7 +304,7 @@ class _ReachShipMainPageState extends State<ReachShipMainPage> {
             }).toList(),
       );
     } else if (state is ReachShipLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AppColors.primary),
       );
     } else {

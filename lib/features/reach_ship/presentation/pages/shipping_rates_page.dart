@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_style.dart';
 import '../../../../widgets/shared_appbar.dart';
 import '../../../../widgets/custom_button.dart';
-import '../../../../widgets/custom_text_field.dart';
 import '../../bloc/reach_ship_bloc.dart';
 import '../../bloc/reach_ship_event.dart';
 import '../../bloc/reach_ship_state.dart';
@@ -31,7 +30,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
   // Form data
   Address? _fromAddress;
   Address? _toAddress;
-  List<Package> _packages = [];
+  final List<Package> _packages = [];
   
   // Validation states
   bool _isFromAddressValid = false;
@@ -42,7 +41,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: const SharedAppbar(title: 'Compare Shipping Rates'),
+      appBar: SharedAppbar(title: 'Compare Shipping Rates'),
       body: BlocListener<ReachShipBloc, ReachShipState>(
         listener: (context, state) {
           if (state is ShippingRatesLoaded) {
@@ -140,7 +139,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
             size: 20,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           label,
           style: AppTextStyles.caption.copyWith(
@@ -161,7 +160,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Shipping Addresses', style: AppTextStyles.h3),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Enter the pickup and delivery addresses to compare shipping rates.',
               style: AppTextStyles.bodyMedium.copyWith(
@@ -220,7 +219,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Package Details', style: AppTextStyles.h3),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Add details about the packages you want to ship.',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -259,7 +258,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                               color: isValid ? AppColors.success : AppColors.error,
                               size: 16,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
                               'Package ${index + 1}',
                               style: AppTextStyles.bodyMedium.copyWith(
@@ -270,7 +269,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                         ),
                         IconButton(
                           onPressed: () => _removePackage(index),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.delete_outline,
                             color: AppColors.error,
                             size: 20,
@@ -278,7 +277,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       'Dimensions: ${package.length} × ${package.width} × ${package.height} ${package.dimensionUnit}',
                       style: AppTextStyles.bodySmall,
@@ -300,7 +299,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
           // Add Package Button
           Container(
@@ -321,7 +320,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                   color: AppColors.primary,
                   size: 32,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Add Package',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -329,7 +328,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 CustomButton(
                   text: 'Add Package Details',
                   onPressed: _showAddPackageDialog,
@@ -357,7 +356,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                     color: _arePackagesValid() ? AppColors.success : AppColors.error,
                     size: 20,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _arePackagesValid() 
@@ -381,7 +380,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
     return BlocBuilder<ReachShipBloc, ReachShipState>(
       builder: (context, state) {
         if (state is ReachShipLoading || _isLoadingRates) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -408,7 +407,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Shipping Options', style: AppTextStyles.h3),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Choose the best shipping option for your needs.',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -423,7 +422,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                     rate: rate,
                     onSelect: () => _selectRate(rate),
                   );
-                }).toList(),
+                }),
               ],
             ),
           );
@@ -452,7 +451,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
   Widget _buildBottomNavigation() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
@@ -471,7 +470,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
                 textColor: AppColors.textPrimary,
               ),
             ),
-          if (_currentStep > 0) const SizedBox(width: 1),
+          if (_currentStep > 0) SizedBox(width: 1),
           Expanded(
             child: CustomButton(
               textStyle: AppTextStyles.bodyMedium.copyWith(
@@ -540,7 +539,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
         // Validate packages before proceeding
         if (!_arePackagesValid()) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Please ensure all packages have valid dimensions and weight'),
               backgroundColor: AppColors.error,
             ),
@@ -564,7 +563,7 @@ class _ShippingRatesPageState extends State<ShippingRatesPage> {
         // Validate addresses before proceeding
         if (_currentStep == 0 && (!_isFromAddressValid || !_isToAddressValid)) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Please fill in all required address fields'),
               backgroundColor: AppColors.error,
             ),

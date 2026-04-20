@@ -57,10 +57,10 @@ class _CustomLoadingWidgetState extends State<CustomLoadingWidget>
           ),
         ),
         if (widget.text != null) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             widget.text!,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 16,
               fontWeight: FontWeight.w500,

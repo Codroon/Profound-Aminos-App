@@ -35,12 +35,12 @@ class GorgiasDebugService {
         print('[GorgiasDebug] Testing token with URL: $url');
         
         // Gorgias uses Basic Authentication: base64encode(USERNAME:API_KEY)
-        final credentials_encoded = base64Encode(utf8.encode('$username:$token'));
+        final credentialsEncoded = base64Encode(utf8.encode('$username:$token'));
         
         final response = await http.get(
           Uri.parse(url),
           headers: {
-            'Authorization': 'Basic $credentials_encoded',
+            'Authorization': 'Basic $credentialsEncoded',
             'Accept': 'application/json',
           },
         );
@@ -110,12 +110,12 @@ class GorgiasDebugService {
         print('[GorgiasDebug] Testing tickets URL: $url');
         
         // Gorgias uses Basic Authentication: base64encode(USERNAME:API_KEY)
-        final credentials_encoded = base64Encode(utf8.encode('$username:$token'));
+        final credentialsEncoded = base64Encode(utf8.encode('$username:$token'));
         
         final response = await http.get(
           Uri.parse(url),
           headers: {
-            'Authorization': 'Basic $credentials_encoded',
+            'Authorization': 'Basic $credentialsEncoded',
             'Accept': 'application/json',
           },
         );

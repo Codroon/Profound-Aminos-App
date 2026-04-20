@@ -42,7 +42,7 @@ class PhoneNumberInputField extends StatelessWidget {
             showOnlyCountryWhenClosed: true,
             alignLeft: false,
             padding: EdgeInsets.zero,
-            textStyle: const TextStyle(
+            textStyle: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 14,
             ),
@@ -51,7 +51,7 @@ class PhoneNumberInputField extends StatelessWidget {
           SizedBox(
             width: 10,
             height: 20,
-            child: const VerticalDivider(
+            child: VerticalDivider(
               color: AppColors.border,
               thickness: 1,
               width: 12,
@@ -63,11 +63,11 @@ class PhoneNumberInputField extends StatelessWidget {
               keyboardType: TextInputType.phone,
               onChanged: onChanged,
               validator: validator,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Please enter phone number',
                 hintStyle: TextStyle(
                   color: AppColors.textSecondary,

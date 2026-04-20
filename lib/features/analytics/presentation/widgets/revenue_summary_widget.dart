@@ -25,20 +25,20 @@ class SalesOverviewCard extends StatelessWidget {
   final double salesAmountFontSize;
   final double percentageFontSize;
 
-  const SalesOverviewCard({
+  SalesOverviewCard({
     super.key,
     this.title = 'Total Sales',
     required this.salesAmount,
     this.currencySymbol = '\$',
     required this.percentageChange,
     required this.chartData,
-    this.backgroundColor = const Color(0xFF2C2C2C),
-    this.titleColor = AppColors.greyB3,
+    this.backgroundColor,
+    this.titleColor,
     this.salesAmountColor = Colors.white,
     this.percentageChangeColor = Colors.white,
-    this.percentageChangeBackgroundColor = AppColors.chartRed,
-    this.chartLineColor = AppColors.chartRed,
-    this.chartAreaColor = AppColors.chartRed,
+    this.percentageChangeBackgroundColor,
+    this.chartLineColor,
+    this.chartAreaColor,
     this.borderRadius = 8.0,
     this.padding = const EdgeInsets.all(16.0),
     this.titleFontSize = 16.0,
@@ -48,7 +48,7 @@ class SalesOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color effectivePercentageChangeBgColor = percentageChangeBackgroundColor!;
+    Color effectivePercentageChangeBgColor = percentageChangeBackgroundColor ?? AppColors.chartRed;
     // You could add logic here to change color based on positive/negative change
     // For now, based on image, it's red.
     // if (percentageChange > 0) {
@@ -64,7 +64,7 @@ class SalesOverviewCard extends StatelessWidget {
           text: title,
           fontSize: titleFontSize,
           fontWeight: FontWeight.w500,
-          color: titleColor,
+          color: titleColor ?? AppColors.greyB3,
         ),
         const SizedBox(height: 4.0),
         // Sales Amount
@@ -104,7 +104,7 @@ class SalesOverviewCard extends StatelessWidget {
                               : [const FlSpot(0, 0), const FlSpot(1, 0)], // Show flat line when no data
                           isCurved: false,
                           barWidth: 3,
-                          color: chartLineColor,
+                          color: chartLineColor ?? AppColors.chartRed,
                           dotData: const FlDotData(
                             show: false,
                           ), // Hide data points
@@ -112,8 +112,8 @@ class SalesOverviewCard extends StatelessWidget {
                             show: true,
                             gradient: LinearGradient(
                               colors: [
-                                chartAreaColor!.withOpacity(0.5),
-                                chartAreaColor!.withOpacity(0.1),
+                                (chartAreaColor ?? AppColors.chartRed).withOpacity(0.5),
+                                (chartAreaColor ?? AppColors.chartRed).withOpacity(0.1),
                               ],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,

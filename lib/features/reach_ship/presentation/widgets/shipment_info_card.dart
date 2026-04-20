@@ -119,7 +119,7 @@ class ShipmentInfoCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // From Address
           _buildAddressCard(
@@ -129,7 +129,7 @@ class ShipmentInfoCard extends StatelessWidget {
             AppColors.primary,
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           // To Address
           _buildAddressCard(
@@ -163,7 +163,7 @@ class ShipmentInfoCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 title,
                 style: AppTextStyles.bodySmall.copyWith(
@@ -174,7 +174,7 @@ class ShipmentInfoCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
 
           // Contact Info
           if (address.name != null && address.name!.isNotEmpty)
@@ -193,7 +193,7 @@ class ShipmentInfoCard extends StatelessWidget {
               ),
             ),
 
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
 
           // Address Lines
           Text(address.street1, style: AppTextStyles.bodySmall),
@@ -210,7 +210,7 @@ class ShipmentInfoCard extends StatelessWidget {
 
           // Contact Details
           if (address.phone != null && address.phone!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Row(
               children: [
                 Icon(
@@ -218,7 +218,7 @@ class ShipmentInfoCard extends StatelessWidget {
                   size: 12,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(
                   address.phone!,
                   style: AppTextStyles.bodySmall.copyWith(
@@ -230,7 +230,7 @@ class ShipmentInfoCard extends StatelessWidget {
           ],
 
           if (address.email != null && address.email!.isNotEmpty) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Row(
               children: [
                 Icon(
@@ -238,7 +238,7 @@ class ShipmentInfoCard extends StatelessWidget {
                   size: 12,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     address.email!,
@@ -388,7 +388,7 @@ class ShipmentInfoCard extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 14, color: AppColors.textSecondary),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

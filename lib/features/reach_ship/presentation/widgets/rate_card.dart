@@ -33,7 +33,7 @@ class RateCard extends StatelessWidget {
                   BoxShadow(
                     color: AppColors.primary.withOpacity(0.1),
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   ),
                 ]
                 : null,
@@ -66,7 +66,7 @@ class RateCard extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
 
                   // Carrier and Service Info
                   Expanded(
@@ -81,7 +81,7 @@ class RateCard extends StatelessWidget {
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           rate.serviceName,
                           style: AppTextStyles.bodyMedium.copyWith(
@@ -117,7 +117,7 @@ class RateCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Delivery Information
               Row(
@@ -143,7 +143,7 @@ class RateCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Additional Services
               if (rate.features?.isNotEmpty == true) ...[
@@ -154,7 +154,7 @@ class RateCard extends StatelessWidget {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
@@ -179,7 +179,7 @@ class RateCard extends StatelessWidget {
                         );
                       }).toList(),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
               ],
 
               // Delivery Guarantee
@@ -200,7 +200,7 @@ class RateCard extends StatelessWidget {
                         size: 16,
                         color: AppColors.success,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
 
                       Text(
                         'Delivery Guarantee',
@@ -213,7 +213,7 @@ class RateCard extends StatelessWidget {
                   ),
                 ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Select Button
               SizedBox(
@@ -237,7 +237,7 @@ class RateCard extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

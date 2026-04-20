@@ -3,28 +3,28 @@ import 'app_colors.dart';
 
 class AppTextStyles {
   // Headings
-  static const TextStyle h1 = TextStyle(
+  static TextStyle get h1 => TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w700,
-    color: AppColors.surfaceLight,
+    color: AppColors.textPrimary,
     height: 1.2,
   );
 
-  static const TextStyle h2 = TextStyle(
+  static TextStyle get h2 => TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w700,
-    color: AppColors.surfaceLight,
+    color: AppColors.textPrimary,
     height: 1.2,
   );
 
-  static const TextStyle h3 = TextStyle(
+  static TextStyle get h3 => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static const TextStyle h4 = TextStyle(
+  static TextStyle get h4 => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -32,27 +32,27 @@ class AppTextStyles {
   );
 
   // Body Text
-  static const TextStyle bodyLarge = TextStyle(
+  static TextStyle get bodyLarge => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w700,
-    color: AppColors.surfaceLight,
+    color: AppColors.textPrimary,
     height: 1.5,
   );
-  static TextStyle secondaryTextStyle = TextStyle(
+  static TextStyle get secondaryTextStyle => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w700,
-    color: AppColors.surfaceLight.withOpacity(0.87),
+    color: AppColors.textPrimary.withOpacity(0.87),
     height: 1.5,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static TextStyle get bodyMedium => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    color: AppColors.surfaceLight,
+    color: AppColors.textPrimary,
     height: 1.5,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static TextStyle get bodySmall => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
@@ -60,20 +60,20 @@ class AppTextStyles {
   );
 
   // Button Text
-  static const TextStyle buttonLarge = TextStyle(
+  static TextStyle get buttonLarge => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
     height: 1.25,
   );
 
-  static const TextStyle buttonMedium = TextStyle(
+  static TextStyle get buttonMedium => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle buttonSmall = TextStyle(
+  static TextStyle get buttonSmall => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -81,21 +81,21 @@ class AppTextStyles {
   );
 
   // Game Text
-  static const TextStyle multiplier = TextStyle(
+  static TextStyle get multiplier => TextStyle(
     fontSize: 48,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
     height: 1.0,
   );
 
-  static const TextStyle multiplierSmall = TextStyle(
+  static TextStyle get multiplierSmall => TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
     height: 1.0,
   );
 
-  static const TextStyle betAmount = TextStyle(
+  static TextStyle get betAmount => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -103,7 +103,7 @@ class AppTextStyles {
   );
 
   // Special Text
-  static const TextStyle caption = TextStyle(
+  static TextStyle get caption => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
@@ -111,27 +111,27 @@ class AppTextStyles {
     letterSpacing: 0.4,
   );
 
-  static TextStyle label = TextStyle(
+  static TextStyle get label => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w700,
     color: AppColors.textSecondary,
     height: 1.4,
   );
-  static TextStyle appBarTextStyle = TextStyle(
+  static TextStyle get appBarTextStyle => TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w700,
-    color: AppColors.surfaceLight.withOpacity(0.87),
+    color: AppColors.textPrimary.withOpacity(0.87),
     height: 1.4,
   );
 
-  static const TextStyle error = TextStyle(
+  static TextStyle get error => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.error,
     height: 1.5,
   );
 
-  static const TextStyle success = TextStyle(
+  static TextStyle get success => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.success,

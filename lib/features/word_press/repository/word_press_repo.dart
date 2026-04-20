@@ -39,7 +39,7 @@ class WordPressRepositoryImpl implements WordPressRepository {
 
   @override
   Future<List<dynamic>> getPosts({required int page, required int perPage}) async {
-    final cacheKey = 'wp_posts_page_${page}_perPage_${perPage}';
+    final cacheKey = 'wp_posts_page_${page}_perPage_$perPage';
     if (await networkInfo.isConnected) {
       final posts = await wordpressService.getPosts(page: page, perPage: perPage);
       await cacheManager.cacheData(

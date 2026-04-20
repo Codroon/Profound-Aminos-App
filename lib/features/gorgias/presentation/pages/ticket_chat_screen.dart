@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
 import 'package:woo_management_app/features/gorgias/models/gorgias_models.dart';
 import '../../../../widgets/app_reusable_text.dart';
 import '../../../../widgets/custom_text_field.dart';
-import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/shared_appbar.dart';
 import '../widgets/ticket_card_widget.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class TicketChatScreen extends StatefulWidget {
   final String ticketId;
@@ -166,7 +165,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                             Container(
                               height: 100,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252533),
+                                color: AppColors.cardDark,
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Center(
@@ -177,13 +176,13 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                             Container(
                               height: 100,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252533),
+                                color: AppColors.cardDark,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
                                   'Loading ticket details...',
-                                  style: TextStyle(color: Colors.white70),
+                                    style: TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
                             ),
@@ -198,7 +197,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                                   text: 'Assigned to: ',
                                   fontWeight: FontWeight.w400,
                                   fontSize: 13,
-                                  color: Colors.white70,
+                                  color: AppColors.textSecondary,
                                 ),
                                 AppReusableText(
                                   text:
@@ -206,7 +205,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                                       'Unassigned',
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                 ),
                               ],
                             ),
@@ -228,7 +227,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                                 child: Text(
                                   'No messages yet',
                                   style: TextStyle(
-                                    color: Colors.white70,
+                                    color: AppColors.textSecondary,
                                     fontSize: 16,
                                   ),
                                 ),
@@ -240,19 +239,19 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                           const Gap(18),
 
                           // Internal Note (if exists)
-                          if (currentTicket?.tags?.isNotEmpty == true)
+                          if (currentTicket?.tags.isNotEmpty == true)
                             Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF314158),
+                                color: AppColors.cardDark,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               padding: const EdgeInsets.all(12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.info_outline,
-                                    color: Colors.white,
+                                    color: AppColors.textPrimary,
                                     size: 20,
                                   ),
                                   const Gap(8),
@@ -265,14 +264,14 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                                           text: 'Tags',
                                           fontWeight: FontWeight.w600,
                                           fontSize: 13,
-                                          color: Colors.white,
+                                          color: AppColors.textPrimary,
                                         ),
                                         const Gap(4),
                                         AppReusableText(
                                           text: currentTicket!.tags.join(', '),
                                           fontWeight: FontWeight.w400,
                                           fontSize: 13,
-                                          color: Colors.white70,
+                                          color: AppColors.textSecondary,
                                           maxLines: 2,
                                         ),
                                       ],
@@ -295,7 +294,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                             controller: messageController,
                             hintText: 'Write a message',
                             borderRadius: 28,
-                            filledColor: const Color(0xFF252533),
+                            filledColor: AppColors.cardDark,
                             onSubmitted: (_) => _sendMessage(),
                             suffixIcon: Container(
                               margin: const EdgeInsets.symmetric(
@@ -391,14 +390,14 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                       text: message.sender.name,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
-                      color: Colors.white70,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 AppReusableText(
                   text: message.bodyText,
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   maxLines: 50,
                 ),
                 if (message.attachments.isNotEmpty)
@@ -446,7 +445,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                 text: message.formattedTime,
                 fontWeight: FontWeight.w400,
                 fontSize: 11,
-                color: Colors.white38,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
             ),
           ),

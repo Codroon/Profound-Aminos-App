@@ -68,7 +68,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
       backgroundColor: AppColors.cardDark,
       child: Container(
         width: MediaQuery.of(context).size.width,
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: BoxConstraints(maxWidth: 500),
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         child: Form(
           key: _formKey,
@@ -84,7 +84,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                     Text('Package Details', style: AppTextStyles.h3),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
                         color: AppColors.textSecondary,
                       ),
@@ -92,7 +92,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
 
                 Text(
                   'Enter the dimensions and weight of your package.',
@@ -101,7 +101,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Dimensions Section
                 Text(
@@ -111,7 +111,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Dimension Unit Selector
                 Container(
@@ -148,7 +148,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
@@ -218,7 +218,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Weight Section
                 Text(
@@ -228,7 +228,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Weight Unit Selector
                 Container(
@@ -265,7 +265,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
@@ -292,7 +292,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   },
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Optional Fields
                 Text(
@@ -302,7 +302,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 CustomTextField(
                   controller: _valueController,
@@ -313,7 +313,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   prefixText: r'$',
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 CustomTextField(
                   controller: _descriptionController,
@@ -321,7 +321,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   maxLines: 2,
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Package Preview
                 Container(
@@ -341,7 +341,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                             size: 16,
                             color: AppColors.primary,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             'Package Preview',
                             style: AppTextStyles.bodySmall.copyWith(
@@ -351,7 +351,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         _getPackagePreview(),
                         style: AppTextStyles.bodySmall.copyWith(
@@ -362,7 +362,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Action Buttons
                 Row(
@@ -380,7 +380,7 @@ class _PackageFormWidgetState extends State<PackageFormWidget> {
                         textColor: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: CustomButton(
                         textStyle: AppTextStyles.buttonMedium.copyWith(

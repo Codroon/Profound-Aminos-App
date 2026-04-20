@@ -73,7 +73,7 @@ class TrackingTimelineWidget extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
 
           // Content
           Expanded(
@@ -106,13 +106,12 @@ class TrackingTimelineWidget extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
 
                   // Description
-                  if (update.description != null &&
-                      update.description!.isNotEmpty)
+                  if (update.description.isNotEmpty)
                     Text(
-                      update.description!,
+                      update.description,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -121,7 +120,7 @@ class TrackingTimelineWidget extends StatelessWidget {
                   // Location
                   if (update.location != null &&
                       update.location!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(
@@ -129,7 +128,7 @@ class TrackingTimelineWidget extends StatelessWidget {
                           size: 14,
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             update.location!,
@@ -145,7 +144,7 @@ class TrackingTimelineWidget extends StatelessWidget {
                   // Location info
                   if (update.location != null &&
                       update.location!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -188,14 +187,14 @@ class TrackingTimelineWidget extends StatelessWidget {
             size: 48,
             color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'No Tracking Updates',
             style: AppTextStyles.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Tracking information will appear here once\nthe shipment is processed by the carrier.',
             style: AppTextStyles.bodySmall.copyWith(

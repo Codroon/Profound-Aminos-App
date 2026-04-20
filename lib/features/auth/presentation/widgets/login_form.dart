@@ -1,11 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/routes/routes_name.dart';
 import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/custom_text_field.dart';
-import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 
@@ -38,11 +36,11 @@ class _LoginFormState extends State<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Support Phone number/Username login',
             style: TextStyle(color: AppColors.surfaceLight, fontSize: 12),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Username/Phone Field
           CustomTextField(
@@ -51,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
             prefixIcon: Icons.person_outline,
             validator: Validators.validateUsernameOrPhone,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Password Field
           CustomTextField(
@@ -80,7 +78,7 @@ class _LoginFormState extends State<LoginForm> {
                 showForgetPasswordDialog(context);
                 // Navigator.pushNamed(context, RouteNames.forgotPassword);
               },
-              child: const Text(
+              child: Text(
                 'Forgot Password?',
                 style: TextStyle(color: AppColors.surfaceLight, fontSize: 12),
               ),
@@ -99,9 +97,9 @@ class _LoginFormState extends State<LoginForm> {
                 },
                 activeColor: AppColors.success,
                 checkColor: Colors.white,
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: AppColors.border),
               ),
-              const Text(
+              Text(
                 'Remember account Password',
                 style: TextStyle(color: AppColors.surfaceLight, fontSize: 12),
               ),
@@ -161,7 +159,7 @@ class _LoginFormState extends State<LoginForm> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
+                            Text(
                               'Forget Password?',
                               style: TextStyle(
                                 fontSize: 16,
@@ -169,7 +167,7 @@ class _LoginFormState extends State<LoginForm> {
                                 color: AppColors.primary,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            SizedBox(height: 20),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -188,12 +186,12 @@ class _LoginFormState extends State<LoginForm> {
                                       CircleAvatar(
                                         radius: 16,
                                         backgroundColor: AppColors.primary,
-                                        child: const Text(
+                                        child: Text(
                                           '1',
                                           style: TextStyle(color: Colors.white),
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       Text(
                                         'Identity Verification',
                                         style: TextStyle(
@@ -204,12 +202,12 @@ class _LoginFormState extends State<LoginForm> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(width: 40),
+                                  SizedBox(width: 40),
 
                                   // Step 2
                                   Column(
                                     children: [
-                                      const CircleAvatar(
+                                      CircleAvatar(
                                         radius: 16,
                                         backgroundColor: Color(0xFFD9D9D9),
                                         child: Text(
@@ -217,7 +215,7 @@ class _LoginFormState extends State<LoginForm> {
                                           style: TextStyle(color: Colors.white),
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       Text(
                                         'Change Password',
                                         style: TextStyle(
@@ -231,18 +229,18 @@ class _LoginFormState extends State<LoginForm> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            SizedBox(height: 20),
                             TextFormField(
                               decoration: InputDecoration(
                                 hintText: 'Please enter Phone number/Email',
-                                hintStyle: const TextStyle(
+                                hintStyle: TextStyle(
                                   color: Color(0xFFB3B3B3),
                                   fontSize: 10,
                                 ),
-                                prefixIcon: const Icon(
+                                prefixIcon: Icon(
                                   Icons.person_outline,
                                   size: 20,
-                                  color: AppColors.iconColor,
+                                  color: AppColors.textSecondary,
                                 ),
                                 filled: true,
                                 fillColor: Color(0xFFF5F5F5),
@@ -334,11 +332,11 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Support Phone number/Username login',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Username/Phone Field
               CustomTextField(
@@ -347,7 +345,7 @@ class _LoginFormState extends State<LoginForm> {
                 prefixIcon: Icons.person_outline,
                 validator: Validators.validateUsernameOrPhone,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Password Field
               CustomTextField(
@@ -386,9 +384,9 @@ class _LoginFormState extends State<LoginForm> {
                         },
                         activeColor: AppColors.success,
                         checkColor: Colors.white,
-                        side: const BorderSide(color: AppColors.border),
+                        side: BorderSide(color: AppColors.border),
                       ),
-                      const Text(
+                      Text(
                         'Remember account Password',
                         style: TextStyle(
                           color: AppColors.textSecondary,
@@ -402,7 +400,7 @@ class _LoginFormState extends State<LoginForm> {
                     onTap: () {
                       Navigator.pushNamed(context, RouteNames.forgotPassword);
                     },
-                    child: const Text(
+                    child: Text(
                       'Forgot Password?',
                       style: TextStyle(
                         color: AppColors.secondary,

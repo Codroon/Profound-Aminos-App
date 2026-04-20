@@ -8,8 +8,6 @@ import '../../../../core/theme/app_text_style.dart';
 import '../../../../widgets/custom_dialog_box.dart';
 import '../../../../widgets/shared_appbar.dart';
 import '../../../auth/presentation/pages/admin_login_screen.dart';
-import '../../../../core/services/crediential_storage_service.dart';
-import '../../../../core/services/api_credential_service.dart';
 import '../../../../core/services/gorgias_debug_service.dart';
 import '../../../../core/services/credential_initialization_service.dart';
 import '../../../../core/services/firestore_credentials_service.dart';
@@ -37,7 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: const SharedAppbar(
+      appBar: SharedAppbar(
         title: 'Profile',
         backgroundColor: AppColors.backgroundDark,
         automaticallyImplyLeading: false,
@@ -126,6 +124,20 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: 'App version and information',
               onTap: () => _showAboutDialog(context),
             ),
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: ThemeManager.themeModeNotifier,
+              builder: (context, themeMode, _) {
+                return _buildProfileOption(
+                  icon: themeMode == ThemeMode.dark ? Iconsax.moon_outline : Iconsax.sun_1_outline,
+                  title: 'Dark Mode',
+                  subtitle: 'Toggle app appearance',
+                  onTap: () {
+                    ThemeManager.toggleTheme();
+                    // Optional: Save preference to generic SharedPreferences
+                  },
+                );
+              },
+            ),
 
             const SizedBox(height: 30),
 
@@ -156,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: AppColors.primaryGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -164,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
               border: Border.all(color: AppColors.primary, width: 2),
             ),
             child: CircleAvatar(
-              backgroundImage: const AssetImage(
+              backgroundImage: AssetImage(
                 'assets/images/profound_icon.png',
               ),
               radius: 40,
@@ -174,11 +186,11 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: 15),
 
           // User Name
-          const Text('Profound Aminos', style: AppTextStyles.h3),
-          const SizedBox(height: 5),
+          Text('Profound Aminos', style: AppTextStyles.h3),
+          SizedBox(height: 5),
 
           // User Email
           Text(
@@ -277,7 +289,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(subtitle, style: AppTextStyles.caption),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.arrow_forward_ios,
           color: AppColors.textSecondary,
           size: 16,
@@ -306,12 +318,12 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Iconsax.logout_outline,
               color: AppColors.error,
               size: 20,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'Logout',
               style: AppTextStyles.buttonMedium.copyWith(
@@ -380,7 +392,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: AppColors.primary,
                 size: 24,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text('Coming Soon', style: AppTextStyles.h4),
             ],
           ),
@@ -418,7 +430,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             content: Row(
               children: [
-                const CircularProgressIndicator(color: AppColors.primary),
+                CircularProgressIndicator(color: AppColors.primary),
                 const SizedBox(width: 20),
                 Text(
                   'Debugging Gorgias credentials...',
@@ -456,7 +468,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           : AppColors.error,
                   size: 24,
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Text('Gorgias Debug Results', style: AppTextStyles.h4),
               ],
             ),
@@ -548,7 +560,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             content: Row(
               children: [
-                const CircularProgressIndicator(color: AppColors.primary),
+                CircularProgressIndicator(color: AppColors.primary),
                 const SizedBox(width: 20),
                 Text(
                   'Refreshing Gorgias credentials...',
@@ -620,7 +632,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: AppColors.primary,
                 size: 24,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text('About App', style: AppTextStyles.h4),
             ],
           ),
@@ -634,9 +646,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text('Version: 1.0.0', style: AppTextStyles.caption),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 'A comprehensive solution for managing your WooCommerce store, analytics, and customer support.',
                 style: AppTextStyles.bodyMedium,
@@ -791,7 +803,7 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Row(
             children: [
               Icon(Iconsax.tick_circle_outline, color: Colors.green, size: 24),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(title, style: AppTextStyles.h4),
             ],
           ),
@@ -828,7 +840,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: AppColors.primary,
                 size: 24,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(title, style: AppTextStyles.h4),
             ],
           ),
@@ -861,7 +873,7 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Row(
             children: [
               Icon(Iconsax.close_circle_outline, color: Colors.red, size: 24),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(title, style: AppTextStyles.h4),
             ],
           ),

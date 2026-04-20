@@ -48,7 +48,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Title
-                            const Text(
+                            Text(
                               'Forget Password?',
                               style: TextStyle(
                                 color: AppColors.secondary,
@@ -56,7 +56,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24),
 
                             // Progress Steps
                             Row(
@@ -68,11 +68,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                       Container(
                                         width: 24,
                                         height: 24,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           color: AppColors.secondary,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Center(
+                                        child: Center(
                                           child: Text(
                                             '1',
                                             style: TextStyle(
@@ -83,8 +83,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Column(
+                                      SizedBox(width: 8),
+                                      Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -203,7 +203,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                       return null;
                                     },
                                   ),
-                                  const SizedBox(height: 24),
+                                  SizedBox(height: 24),
 
                                   // Change Password Button
                                   SizedBox(

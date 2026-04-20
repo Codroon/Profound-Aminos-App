@@ -5,7 +5,6 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
-import 'package:woo_management_app/widgets/custom_loading_widget.dart';
 import '../../../analytics/bloc/analytics_bloc.dart';
 import '../../../analytics/bloc/analytics_state.dart';
 
@@ -14,64 +13,58 @@ class CurrentOrdersWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, RouteNames.wooAllOrders),
+      child: Container(
         padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: AppColors.cardDark,
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(
-                  Iconsax.shopping_cart_outline,
-                  color: AppColors.greyB3,
-                  size: 20,
-                ),
-                const Gap(8),
                 AppReusableText(
                   text: 'Current Orders',
                   fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.greyB3,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, RouteNames.wooAllOrders);
-                  },
-                  icon: Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppColors.greyB3,
-                    size: 16,
-                  ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.textSecondary,
+                  size: 16,
                 ),
               ],
             ),
-            const Gap(16),
+            const Gap(24),
             BlocBuilder<AnalyticsBloc, AnalyticsState>(
               builder: (context, state) {
                 if (state is AnalyticsLoading) {
                   return const Center(
-                    child: CustomLoadingWidget(
-                      size: 30,
-                      text: 'Loading orders...',
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: CircularProgressIndicator(),
                     ),
                   );
                 } else if (state is AnalyticsLoaded) {
-                  if (state.orders.isEmpty) {
+                  if (state.allOrders.isEmpty) {
                     return Center(
                       child: Column(
                         children: [
                           Icon(
                             Iconsax.shopping_cart_outline,
-                            color: AppColors.greyB3.withOpacity(0.5),
+                            color: AppColors.textSecondary.withValues(alpha: 0.5),
                             size: 40,
                           ),
                           const Gap(8),
                           AppReusableText(
                             text: 'No orders found',
                             fontSize: 14,
-                            color: AppColors.greyB3.withOpacity(0.7),
+                            color: AppColors.textSecondary.withValues(alpha: 0.7),
                           ),
                         ],
                       ),
@@ -79,7 +72,7 @@ class CurrentOrdersWidget extends StatelessWidget {
                   }
 
                   // Show only the first 3 orders
-                  final ordersToShow = state.orders.take(3).toList();
+                  final ordersToShow = state.allOrders.take(3).toList();
 
                   return Column(
                     children:
@@ -87,26 +80,36 @@ class CurrentOrdersWidget extends StatelessWidget {
                           return _OrderItem(order: order);
                         }).toList(),
                   );
-                } else if (state is AnalyticsError) {
+                } else {
+                  // Error or initial state with error UI from screenshot
                   return Center(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red.withOpacity(0.7),
-                          size: 40,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.red, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.priority_high,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
+                        const Gap(16),
+                        const AppReusableText(
+                          text: 'Failed to load orders',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
                         ),
                         const Gap(8),
-                        AppReusableText(
-                          text: 'Failed to load orders',
-                          fontSize: 14,
-                          color: Colors.red.withOpacity(0.7),
-                        ),
                       ],
                     ),
                   );
                 }
-                return const SizedBox.shrink();
               },
             ),
           ],
@@ -133,9 +136,9 @@ class _OrderItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.greyB3.withOpacity(0.08),
+        color: AppColors.greyB3.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.greyB3.withOpacity(0.2), width: 1),
+        border: Border.all(color: AppColors.greyB3.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -143,7 +146,7 @@ class _OrderItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _getStatusColor(status).withOpacity(0.1),
+              color: _getStatusColor(status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -152,7 +155,7 @@ class _OrderItem extends StatelessWidget {
               size: 20,
             ),
           ),
-          const Gap(12),
+          Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,33 +166,33 @@ class _OrderItem extends StatelessWidget {
                       text: '#$orderId',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.backgroundLight,
+                      color: AppColors.textPrimary,
                     ),
-                    const Spacer(),
+                    Spacer(),
                     AppReusableText(
                       text: '\$$total',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.backgroundLight,
+                      color: AppColors.textPrimary,
                     ),
                   ],
                 ),
-                const Gap(4),
+                Gap(4),
                 Row(
                   children: [
                     AppReusableText(
                       text: customerName,
                       fontSize: 12,
-                      color: AppColors.greyB3.withOpacity(0.8),
+                      color: AppColors.textSecondary,
                     ),
-                    const Spacer(),
+                    Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(status).withOpacity(0.1),
+                        color: _getStatusColor(status).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: AppReusableText(
@@ -202,11 +205,11 @@ class _OrderItem extends StatelessWidget {
                   ],
                 ),
                 if (dateCreated.isNotEmpty) ...[
-                  const Gap(2),
+                  Gap(2),
                   AppReusableText(
                     text: _formatDate(dateCreated),
                     fontSize: 10,
-                    color: AppColors.backgroundLight,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ],

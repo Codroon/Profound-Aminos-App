@@ -59,11 +59,11 @@ class CustomTextField extends StatelessWidget {
         FocusScope.of(context).unfocus();
       },
       onFieldSubmitted: onSubmitted,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
       cursorColor: AppColors.primary,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w400,
@@ -85,25 +85,25 @@ class CustomTextField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? 22),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? 22),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? 22),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1),
+          borderSide: BorderSide(color: AppColors.primary, width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? 22),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? 22),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
+          borderSide: BorderSide(color: AppColors.error, width: 1),
         ),
-        errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
+        errorStyle: TextStyle(color: AppColors.error, fontSize: 12),
       ),
     );
   }

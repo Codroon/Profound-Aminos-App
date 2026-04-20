@@ -71,7 +71,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -91,13 +91,13 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close),
                 color: AppColors.textSecondary,
               ),
             ],
           ),
           
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           
           // Filters Content
           Flexible(
@@ -111,7 +111,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
                     _buildStatusFilter(),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   
                   // Carrier Filter
                   _buildFilterSection(
@@ -119,7 +119,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
                     _buildCarrierFilter(),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   
                   // Service Type Filter
                   _buildFilterSection(
@@ -127,7 +127,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
                     _buildServiceFilter(),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   
                   // Date Range Filter
                   _buildFilterSection(
@@ -135,7 +135,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
                     _buildDateRangeFilter(),
                   ),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                 ],
               ),
             ),
@@ -299,7 +299,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
           ],
         ),
         
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         
         // Custom Date Range
         Container(
@@ -319,7 +319,7 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
                   size: 16,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _selectedDateRange != null
@@ -393,16 +393,15 @@ class _ShipmentFilterSheetState extends State<ShipmentFilterSheet> {
   void _selectCustomDateRange() async {
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
       lastDate: DateTime.now(),
       initialDateRange: _selectedDateRange,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               surface: AppColors.cardDark,
-              background: AppColors.backgroundDark,
             ),
           ),
           child: child!,

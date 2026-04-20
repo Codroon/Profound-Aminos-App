@@ -6,6 +6,7 @@ import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
 import 'package:woo_management_app/features/gorgias/models/gorgias_models.dart';
+import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/ticket_chat_screen.dart';
 import 'package:woo_management_app/widgets/custom_loading_widget.dart';
 import '../../../../widgets/custom_button.dart';
@@ -93,7 +94,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1e1f28),
+      backgroundColor: AppColors.backgroundDark,
       appBar: SharedAppbar(
         title: 'Ticket Details',
         actions: [
@@ -170,7 +171,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   constraints: const BoxConstraints(maxWidth: 400),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF252533),
+                    color: AppColors.cardDark,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -184,11 +185,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         text: 'Status',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                       const Gap(8),
                       DropdownButtonFormField<String>(
-                        value: selectedStatus,
+                        initialValue: selectedStatus,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFF314158),
@@ -201,9 +202,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             vertical: 12,
                           ),
                         ),
-                        dropdownColor: const Color(0xFF314158),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        dropdownColor: AppColors.cardDark,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 15,
                         ),
                         items:
@@ -228,11 +229,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         text: 'Assigned To',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                       const Gap(8),
                       DropdownButtonFormField<String>(
-                        value: selectedAssignee,
+                        initialValue: selectedAssignee,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFF314158),
@@ -245,9 +246,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             vertical: 12,
                           ),
                         ),
-                        dropdownColor: const Color(0xFF314158),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        dropdownColor: AppColors.cardDark,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 15,
                         ),
                         items: [
@@ -262,7 +263,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   child: Text(assignee),
                                 ),
                               )
-                              .toList(),
+                              ,
                         ],
                         onChanged: (value) {
                           if (value != null) {
@@ -277,7 +278,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         text: 'Internal Note',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                       const Gap(8),
                       CustomTextField(

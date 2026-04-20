@@ -10,13 +10,28 @@ import '../../../analytics/bloc/analytics_bloc.dart';
 import '../../../analytics/bloc/analytics_state.dart';
 import '../../../analytics/bloc/analytics_event.dart';
 
-class WooAllOrdersPage extends StatelessWidget {
+class WooAllOrdersPage extends StatefulWidget {
   const WooAllOrdersPage({super.key});
+
+  @override
+  State<WooAllOrdersPage> createState() => _WooAllOrdersPageState();
+}
+
+class _WooAllOrdersPageState extends State<WooAllOrdersPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Ensure orders are fetched/refreshed when this page opens
+    final bloc = context.read<AnalyticsBloc>();
+    if (bloc.state is! AnalyticsLoaded) {
+      bloc.add(const FetchAnalytics(0));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SharedAppbar(title: 'All Orders'),
+      appBar: const SharedAppbar(title: 'All Orders'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
@@ -29,29 +44,29 @@ class WooAllOrdersPage extends StatelessWidget {
                 ),
               );
             } else if (state is AnalyticsLoaded) {
-              if (state.orders.isEmpty) {
+              if (state.allOrders.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Iconsax.shopping_cart_outline,
-                        color: AppColors.greyB3.withOpacity(0.5),
+                        color: AppColors.greyB3.withValues(alpha: 0.5),
                         size: 80,
                       ),
-                      const Gap(16),
+                      Gap(16),
                       AppReusableText(
                         text: 'No orders found',
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.greyB3.withOpacity(0.7),
+                        color: AppColors.greyB3.withValues(alpha: 0.7),
                       ),
-                      const Gap(8),
+                      Gap(8),
                       AppReusableText(
                         text:
                             'Orders will appear here when customers place them',
                         fontSize: 14,
-                        color: AppColors.greyB3.withOpacity(0.5),
+                        color: AppColors.greyB3.withValues(alpha: 0.5),
                         textAlignment: TextAlign.center,
                       ),
                     ],
@@ -70,9 +85,9 @@ class WooAllOrdersPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
@@ -83,20 +98,20 @@ class WooAllOrdersPage extends StatelessWidget {
                           color: AppColors.greyB3,
                           size: 24,
                         ),
-                        const Gap(12),
+                        Gap(12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AppReusableText(
                               text: 'Total Orders',
                               fontSize: 14,
-                              color: AppColors.backgroundLight,
+                              color: AppColors.textSecondary,
                             ),
                             AppReusableText(
-                              text: '${state.orders.length}',
+                              text: '${state.allOrders.length}',
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.backgroundLight,
+                              color: AppColors.textSecondary,
                             ),
                           ],
                         ),
@@ -107,7 +122,7 @@ class WooAllOrdersPage extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: AppReusableText(
@@ -126,9 +141,9 @@ class WooAllOrdersPage extends StatelessWidget {
                   Expanded(
                     child: ListView.builder(
                       physics: const BouncingScrollPhysics(),
-                      itemCount: state.orders.length,
+                      itemCount: state.allOrders.length,
                       itemBuilder: (context, index) {
-                        final order = state.orders[index];
+                        final order = state.allOrders[index];
                         return _OrderItem(order: order);
                       },
                     ),
@@ -142,21 +157,21 @@ class WooAllOrdersPage extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.error_outline,
-                      color: Colors.red.withOpacity(0.7),
+                      color: Colors.red.withValues(alpha: 0.7),
                       size: 80,
                     ),
-                    const Gap(16),
+                    Gap(16),
                     AppReusableText(
                       text: 'Failed to load orders',
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.red.withOpacity(0.7),
+                      color: Colors.red.withValues(alpha: 0.7),
                     ),
-                    const Gap(8),
+                    Gap(8),
                     AppReusableText(
                       text: 'Please check your connection and try again',
                       fontSize: 14,
-                      color: AppColors.greyB3.withOpacity(0.5),
+                      color: AppColors.greyB3.withValues(alpha: 0.5),
                       textAlignment: TextAlign.center,
                     ),
                     const Gap(24),
@@ -210,9 +225,9 @@ class _OrderItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -228,7 +243,7 @@ class _OrderItem extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: _getStatusColor(status).withOpacity(0.1),
+                    color: _getStatusColor(status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -237,7 +252,7 @@ class _OrderItem extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                const Gap(12),
+                Gap(12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,13 +261,13 @@ class _OrderItem extends StatelessWidget {
                         text: 'Order #$orderId',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.backgroundLight,
+                        color: AppColors.textPrimary,
                       ),
-                      const Gap(2),
+                      Gap(2),
                       AppReusableText(
                         text: customerName,
                         fontSize: 14,
-                        color: AppColors.backgroundLight,
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),
@@ -264,16 +279,16 @@ class _OrderItem extends StatelessWidget {
                       text: '\$$total',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.backgroundLight,
+                      color: AppColors.textPrimary,
                     ),
-                    const Gap(4),
+                    Gap(4),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(status).withOpacity(0.1),
+                        color: _getStatusColor(status).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: AppReusableText(
@@ -290,11 +305,11 @@ class _OrderItem extends StatelessWidget {
 
             // Order details
             if (lineItems.isNotEmpty) ...[
-              const Gap(12),
+              Gap(12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.greyB3.withOpacity(0.08),
+                  color: AppColors.greyB3.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -304,7 +319,7 @@ class _OrderItem extends StatelessWidget {
                       text: 'Items (${lineItems.length})',
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.backgroundLight,
+                      color: AppColors.textPrimary,
                     ),
                     const Gap(6),
                     ...lineItems.take(3).map((item) {
@@ -317,24 +332,24 @@ class _OrderItem extends StatelessWidget {
                             AppReusableText(
                               text: '• $name',
                               fontSize: 12,
-                              color: AppColors.backgroundLight,
+                              color: AppColors.textSecondary,
                             ),
-                            const Spacer(),
+                            Spacer(),
                             AppReusableText(
                               text: 'x$quantity',
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.backgroundLight,
+                              color: AppColors.textSecondary,
                             ),
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                     if (lineItems.length > 3)
                       AppReusableText(
                         text: '... and ${lineItems.length - 3} more items',
                         fontSize: 11,
-                        color: AppColors.backgroundLight,
+                        color: AppColors.textSecondary,
                         fontStyle: FontStyle.italic,
                       ),
                   ],
@@ -344,19 +359,19 @@ class _OrderItem extends StatelessWidget {
 
             // Date
             if (dateCreated.isNotEmpty) ...[
-              const Gap(8),
+              Gap(8),
               Row(
                 children: [
                   Icon(
                     Icons.access_time,
                     size: 14,
-                    color: AppColors.backgroundLight,
+                    color: AppColors.textSecondary,
                   ),
-                  const Gap(4),
+                  Gap(4),
                   AppReusableText(
                     text: _formatDate(dateCreated),
                     fontSize: 12,
-                    color: AppColors.backgroundLight,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ),

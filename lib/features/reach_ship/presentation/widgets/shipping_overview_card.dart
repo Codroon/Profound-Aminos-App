@@ -56,7 +56,7 @@ class ShippingOverviewCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               value,
               style: AppTextStyles.h2.copyWith(
@@ -64,7 +64,7 @@ class ShippingOverviewCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               title,
               style: AppTextStyles.bodySmall.copyWith(

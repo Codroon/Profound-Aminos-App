@@ -70,7 +70,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
           } else if (state is ShipmentDeleted) {
             _loadShipments();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Shipment deleted successfully'),
                 backgroundColor: AppColors.success,
               ),
@@ -109,7 +109,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
   Widget _buildSearchAndFilterSection() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
@@ -131,7 +131,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               // Filter Button
               Container(
                 decoration: BoxDecoration(
@@ -193,7 +193,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   GestureDetector(
                     onTap: () => _removeFilter(entry.key),
                     child: Icon(
@@ -211,7 +211,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
 
   Widget _buildStatusTabs() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardDark,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
@@ -261,7 +261,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
       children: [
         Text(label),
         if (count > 0) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
@@ -285,7 +285,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
     return BlocBuilder<ReachShipBloc, ReachShipState>(
       builder: (context, state) {
         if (state is ReachShipLoading) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -339,14 +339,14 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
               size: 64,
               color: AppColors.textSecondary,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               _searchQuery.isNotEmpty || _activeFilters.isNotEmpty
                   ? 'No shipments found'
                   : 'No shipments yet',
               style: AppTextStyles.h4,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               _searchQuery.isNotEmpty || _activeFilters.isNotEmpty
                   ? 'Try adjusting your search or filters'
@@ -404,8 +404,9 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
             // Carrier filter
             if (_activeFilters.containsKey('carrier')) {
               if (shipment.selectedRate.carrierName !=
-                  _activeFilters['carrier'])
+                  _activeFilters['carrier']) {
                 return false;
+              }
             }
 
             // Date range filter
@@ -516,7 +517,7 @@ class _ShipmentManagementPageState extends State<ShipmentManagementPage>
       builder:
           (context) => AlertDialog(
             backgroundColor: AppColors.cardDark,
-            title: const Text('Delete Shipment', style: AppTextStyles.h4),
+            title: Text('Delete Shipment', style: AppTextStyles.h4),
             content: Text(
               'Are you sure you want to delete this shipment?\n\nTracking: ${shipment.trackingNumber ?? 'N/A'}',
               style: AppTextStyles.bodyMedium,

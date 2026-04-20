@@ -98,12 +98,12 @@ class PostCard extends StatelessWidget {
                   ),
                   child: Text(
                     status,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ],
             ),
-            const Gap(8),
+            Gap(8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -151,13 +151,13 @@ class PostCard extends StatelessWidget {
                         },
                         tooltip: 'Delete Post',
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                        constraints: BoxConstraints(),
                       ),
                     ],
                   ),
               ],
             ),
-            const Gap(16),
+            Gap(16),
             SizedBox(
               height: 100,
               child: SingleChildScrollView(

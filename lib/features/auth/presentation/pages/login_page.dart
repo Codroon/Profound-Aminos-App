@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/routes/routes_name.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../widgets/auth_header.dart';
-import '../widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -31,7 +29,7 @@ class LoginPage extends StatelessWidget {
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: const Text(
+              child: Text(
                 'Register',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -50,12 +48,12 @@ class LoginPage extends StatelessWidget {
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: AppColors.primary, width: 1),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Login',
                 textAlign: TextAlign.center,
                 style: TextStyle(

@@ -1,6 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../models/ticket.dart';
-import '../models/message.dart';
 import '../models/gorgias_models.dart';
 
 abstract class GorgiasState extends Equatable {
