@@ -15,7 +15,16 @@ import '../../../gorgias/bloc/gorgias_event.dart';
 import '../../../gorgias/bloc/gorgias_state.dart';
 
 class GorgiasCard extends StatefulWidget {
-  const GorgiasCard({super.key});
+  final int? cachedOpenTickets;
+  final int? cachedClosedTickets;
+  final int? cachedTotalTickets;
+  
+  const GorgiasCard({
+    super.key,
+    this.cachedOpenTickets,
+    this.cachedClosedTickets,
+    this.cachedTotalTickets,
+  });
 
   @override
   State<GorgiasCard> createState() => _GorgiasCardState();
@@ -24,14 +33,21 @@ class GorgiasCard extends StatefulWidget {
 class _GorgiasCardState extends State<GorgiasCard> {
   bool _hasInitialized = false;
   Timer? _retryTimer;
+  
+  // Use cached data if available
+  bool get _hasCachedData => 
+      widget.cachedOpenTickets != null && 
+      widget.cachedClosedTickets != null;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_hasInitialized) {
       _hasInitialized = true;
-      // Always try to fetch ticket stats on first load
-      _fetchTicketStatsWithRetry();
+      // Only fetch if no cached data - otherwise wait for background refresh
+      if (!_hasCachedData) {
+        _fetchTicketStatsWithRetry();
+      }
     }
   }
 
@@ -107,12 +123,20 @@ class _GorgiasCardState extends State<GorgiasCard> {
                 log(
                   'GorgiasCard builder - Building with state: ${state.runtimeType}',
                 );
-                if (state is TicketStatsLoaded) {
-                  final stats = state.stats;
-                  final totalTickets =
-                      stats.totalTickets > 0 ? stats.totalTickets : 1;
-                  final openProgress = stats.openTickets / totalTickets;
-                  final closedProgress = stats.closedTickets / totalTickets;
+                if (state is TicketStatsLoaded || _hasCachedData) {
+                  // Use live data if available, otherwise use cached
+                  final openTickets = state is TicketStatsLoaded 
+                      ? state.stats.openTickets 
+                      : widget.cachedOpenTickets ?? 0;
+                  final closedTickets = state is TicketStatsLoaded 
+                      ? state.stats.closedTickets 
+                      : widget.cachedClosedTickets ?? 0;
+                  final totalTickets = state is TicketStatsLoaded 
+                      ? (state.stats.totalTickets > 0 ? state.stats.totalTickets : 1)
+                      : ((widget.cachedTotalTickets ?? 0) > 0 ? widget.cachedTotalTickets! : 1);
+                  
+                  final openProgress = openTickets / totalTickets;
+                  final closedProgress = closedTickets / totalTickets;
                   
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +152,7 @@ class _GorgiasCardState extends State<GorgiasCard> {
                             fontSize: 12,
                           ),
                           AppReusableText(
-                            text: stats.openTickets.toString(),
+                            text: openTickets.toString(),
                             color: AppColors.textPrimary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -153,7 +177,7 @@ class _GorgiasCardState extends State<GorgiasCard> {
                             fontSize: 12,
                           ),
                           AppReusableText(
-                            text: stats.closedTickets.toString(),
+                            text: closedTickets.toString(),
                             color: AppColors.textPrimary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -169,7 +193,8 @@ class _GorgiasCardState extends State<GorgiasCard> {
                       ),
                     ],
                   );
-                } else if (state is TicketStatsLoading) {
+                } else if (state is TicketStatsLoading && !_hasCachedData) {
+                  // Only show loading if no cached data
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

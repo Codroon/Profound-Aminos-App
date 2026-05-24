@@ -87,7 +87,9 @@ class GorgiasBloc extends Bloc<GorgiasEvent, GorgiasState> {
       // Check if we should use cache FIRST to avoid loading flash
       final statusKey = filter.status ?? 'all';
       final assigneeKey = filter.assigneeId ?? 'none';
-      final cacheKey = 'tickets_${statusKey}_${assigneeKey}_${filter.page}';
+      final channelKey = filter.channel ?? 'all';
+      final searchKey = filter.searchQuery ?? '';
+      final cacheKey = 'tickets_${statusKey}_${assigneeKey}_${channelKey}_${searchKey}_${filter.page}';
       final now = DateTime.now();
       
       if (_lastTicketsFetch != null &&
@@ -105,6 +107,7 @@ class GorgiasBloc extends Bloc<GorgiasEvent, GorgiasState> {
           currentPage: filter.page,
           hasMore: cachedData['hasMore'],
           currentFilter: filter.status,
+          searchQuery: filter.searchQuery,
           lastUpdated: _lastTicketsFetch!,
         ));
         return;
@@ -127,15 +130,40 @@ class GorgiasBloc extends Bloc<GorgiasEvent, GorgiasState> {
       }
       
       // Fetch tickets from repository
-      final result = await _repository.getTickets(
-        status: filter.status,
-        assignedTo: filter.assigneeId,
-        page: filter.page,
-        perPage: filter.perPage,
-      );
+      Map<String, dynamic> result;
+      if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+        result = await _repository.searchTickets(filter.searchQuery!);
+      } else {
+        result = await _repository.getTickets(
+          status: filter.status,
+          assignedTo: filter.assigneeId,
+          channel: filter.channel,
+          page: filter.page,
+          perPage: filter.perPage,
+        );
+      }
       
-      final ticketsData = result['tickets'] as List<dynamic>;
-      final totalCount = result['totalCount'] as int;
+      var ticketsData = result['tickets'] as List<dynamic>;
+      var totalCount = result['totalCount'] as int;
+
+      if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+        // Apply client-side status filtering if status is specified
+        if (filter.status != null && filter.status!.isNotEmpty && filter.status != 'all') {
+          ticketsData = ticketsData.where((ticket) {
+            final ticketStatus = ticket['status']?.toString().toLowerCase();
+            return ticketStatus == filter.status!.toLowerCase();
+          }).toList();
+        }
+
+        // Apply client-side channel filtering if channel is specified
+        if (filter.channel != null && filter.channel!.isNotEmpty && filter.channel != 'all') {
+          ticketsData = ticketsData.where((ticket) {
+            final ticketChannel = ticket['channel']?.toString().toLowerCase();
+            return ticketChannel == filter.channel!.toLowerCase();
+          }).toList();
+        }
+        totalCount = ticketsData.length;
+      }
       
       // Convert Map objects to Ticket objects
       final tickets = ticketsData.map((ticketMap) => 
@@ -165,7 +193,8 @@ class GorgiasBloc extends Bloc<GorgiasEvent, GorgiasState> {
         totalCount: totalCount,
         currentPage: _currentPage,
         hasMore: _hasMoreTickets,
-        currentFilter: event.status,
+        currentFilter: filter.status,
+        searchQuery: filter.searchQuery,
         lastUpdated: now,
       ));
       

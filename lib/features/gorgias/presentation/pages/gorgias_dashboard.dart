@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -8,20 +7,21 @@ import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
 import 'package:woo_management_app/features/gorgias/models/gorgias_models.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/ticket_detail_screen.dart';
-import 'package:woo_management_app/widgets/custom_text_field.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
 
 import '../widgets/ticket_card_widget.dart';
+import 'package:woo_management_app/widgets/highlight_container.dart';
+import '../widgets/ticket_list_shimmer.dart';
 
 class GorgiasDashboard extends StatefulWidget {
-  const GorgiasDashboard({super.key});
+  final String? highlightTicketId;
+  const GorgiasDashboard({super.key, this.highlightTicketId});
 
   @override
   State<GorgiasDashboard> createState() => _GorgiasDashboardState();
 }
 
 class _GorgiasDashboardState extends State<GorgiasDashboard> {
-  late TextEditingController _searchController;
   TicketFilter _currentFilter = const TicketFilter();
   late GorgiasBloc _gorgiasBloc;
   bool _hasInitialized = false;
@@ -36,7 +36,6 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController();
   }
 
   @override
@@ -61,7 +60,6 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
     if (!_gorgiasBloc.isClosed) {
       _gorgiasBloc.add(const StopRealtimeUpdates());
     }
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -71,14 +69,6 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
       _isManualFilterChange = true;
     });
     _gorgiasBloc.add(FetchTickets(filter: newFilter));
-  }
-
-  void _onSearchChanged(String query) {
-    final newFilter = _currentFilter.copyWith(
-      searchQuery: query.isEmpty ? null : query,
-      page: 1,
-    );
-    _onFilterChanged(newFilter);
   }
 
   void _onRefresh() {
@@ -91,15 +81,9 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SharedAppbar(
+      appBar: const SharedAppbar(
         title: 'All Tickets',
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Iconsax.add_outline)),
-          IconButton(
-            onPressed: _onRefresh,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -108,20 +92,9 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _searchController,
-                      prefixIcon: Iconsax.search_normal_outline,
-                      hintText: 'Search tickets...',
-                      onChanged: _onSearchChanged,
-                    ),
-                    const SizedBox(height: 16),
-                    _TicketFilterBar(
-                      currentFilter: _currentFilter,
-                      onFilterChanged: _onFilterChanged,
-                    ),
-                  ],
+                child: _TicketFilterBar(
+                  currentFilter: _currentFilter,
+                  onFilterChanged: _onFilterChanged,
                 ),
               ),
               Expanded(
@@ -136,7 +109,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                           _cachedHasMore,
                         );
                       }
-                      return const Center(child: CircularProgressIndicator());
+                      return const TicketListShimmer();
                     }
 
                     if (state is TicketStatsLoaded) {
@@ -160,30 +133,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                         );
                       }
 
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Loading tickets...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Found ${state.stats.totalTickets} total tickets',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
+                      return const TicketListShimmer();
                     }
 
                     if (state is TicketsError) {
@@ -255,7 +205,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
                     }
 
                     // Default state
-                    return const Center(child: CircularProgressIndicator());
+                    return const TicketListShimmer();
                   },
                 ),
               ),
@@ -320,16 +270,24 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
         }
 
         final ticket = tickets[index];
-        return TicketCardWidget(
-          ticket: ticket,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TicketDetailScreen(ticketId: ticket.id),
-              ),
-            );
-          },
+        final isHighlighted =
+            widget.highlightTicketId != null &&
+            ticket.id.toString() == widget.highlightTicketId;
+        return HighlightContainer(
+          isHighlighted: isHighlighted,
+          child: TicketCardWidget(
+            ticket: ticket,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TicketDetailScreen(ticketId: ticket.id),
+                ),
+              ).then((_) {
+                _gorgiasBloc.add(FetchTickets(filter: _currentFilter));
+              });
+            },
+          ),
         );
       },
     );
@@ -400,18 +358,23 @@ class _TicketFilterBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color:
-                    isSelected ? Color(0xFF314158) : AppColors.cardDark,
+                color: isSelected ? AppColors.primary : AppColors.cardDark,
                 borderRadius: BorderRadius.circular(20),
                 border:
                     isSelected
-                        ? Border.all(color: Colors.blue.shade300, width: 1)
-                        : null,
+                        ? Border.all(
+                          color: AppColors.primary.withOpacity(0.5),
+                          width: 1.5,
+                        )
+                        : Border.all(
+                          color: AppColors.border.withOpacity(0.3),
+                          width: 1,
+                        ),
               ),
               child: Text(
                 filter['label']!,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 14,
                   letterSpacing: 0.2,

@@ -46,10 +46,10 @@ Future<void> analyzeTokenIssue() async {
       print('  Format: Valid JWT structure');
       try {
         // Try to decode the header
-        final header = _decodeBase64Url(segments[0]);
+        _decodeBase64Url(segments[0]);
         print('  Header decoded: ✅');
         
-        final payload = _decodeBase64Url(segments[1]);
+        _decodeBase64Url(segments[1]);
         print('  Payload decoded: ✅');
       } catch (e) {
         print('  Decoding failed: ❌ $e');

@@ -103,8 +103,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     RevenueChartCard(
                       period: displayPeriod,
                       revenue: revenue,
-                      totalOrders: state.revenueReport?.totalOrders ??
-                          state.totalOrderCount,
+                      totalOrders: state.totalOrderCount,
                       chartSpots: chartSpots,
                       xLabels: xLabels,
                       onPeriodChanged: _onPeriodChanged,

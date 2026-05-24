@@ -12,6 +12,7 @@ class AppReusableText extends StatelessWidget {
     this.textAlignment = TextAlign.start,
     this.maxLines = 1,
     this.fontStyle,
+    this.overflow,
   });
 
   final String text;
@@ -21,12 +22,13 @@ class AppReusableText extends StatelessWidget {
   final TextAlign textAlignment;
   final int? maxLines;
   final FontStyle? fontStyle;
+  final TextOverflow? overflow;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
-      overflow: TextOverflow.ellipsis,
+      overflow: overflow ?? TextOverflow.ellipsis,
       textAlign: textAlignment,
       maxLines: maxLines,
 

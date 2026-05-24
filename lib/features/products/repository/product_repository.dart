@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:woo_management_app/core/network/network_info.dart';
 import 'package:woo_management_app/core/storage/cache_manager.dart';
 import '../../../core/constants/storage_constants.dart';
@@ -5,12 +6,16 @@ import '../../../core/services/woocommerce_service.dart';
 import '../../../core/services/wordpress_service.dart';
 
 abstract class ProductRepository {
-  Future<List<dynamic>> getProducts({required int page, required int perPage, String? searchTerm});
+  Future<List<dynamic>> getProducts({
+    required int page,
+    required int perPage,
+    String? searchTerm,
+  });
   Future<Map<String, dynamic>> createProduct(Map<String, dynamic> data);
   Future<Map<String, dynamic>> updateProduct(int id, Map<String, dynamic> data);
   Future<void> deleteProduct(int id);
   Future<void> clearProductsCache();
-  Future<List<int>> uploadImages(List<String> imagePaths, List<String> fileNames);
+  Future<List<String>> uploadImages(List<File> images);
 }
 
 class ProductRepositoryImpl implements ProductRepository {
@@ -25,11 +30,19 @@ class ProductRepositoryImpl implements ProductRepository {
   });
 
   @override
-  Future<List<dynamic>> getProducts({required int page, required int perPage, String? searchTerm}) async {
-    final cacheKey = 'products_page_${page}_perPage_${perPage}_search_${searchTerm ?? ''}';
+  Future<List<dynamic>> getProducts({
+    required int page,
+    required int perPage,
+    String? searchTerm,
+  }) async {
+    final cacheKey =
+        'products_page_${page}_perPage_${perPage}_search_${searchTerm ?? ''}';
     if (await networkInfo.isConnected) {
       final products = await wooCommerceService.getProducts(
-        page: page, perPage: perPage, searchTerm: searchTerm);
+        page: page,
+        perPage: perPage,
+        searchTerm: searchTerm,
+      );
       await cacheManager.cacheData(
         cacheKey,
         products,
@@ -37,7 +50,9 @@ class ProductRepositoryImpl implements ProductRepository {
       );
       return products;
     } else {
-      final cachedData = await cacheManager.getCachedData<List<dynamic>>(cacheKey);
+      final cachedData = await cacheManager.getCachedData<List<dynamic>>(
+        cacheKey,
+      );
       if (cachedData != null) {
         return cachedData;
       }
@@ -51,7 +66,10 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> updateProduct(int id, Map<String, dynamic> data) {
+  Future<Map<String, dynamic>> updateProduct(
+    int id,
+    Map<String, dynamic> data,
+  ) {
     return wooCommerceService.updateProduct(id, data);
   }
 
@@ -66,7 +84,9 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<List<int>> uploadImages(List<String> imagePaths, List<String> fileNames) {
-    return wordpressService.uploadImagesToMediaLibrary(imagePaths, fileNames);
+  Future<List<String>> uploadImages(List<File> images) {
+    return wordpressService.uploadImagesToMediaLibrary(
+      images,
+    ); 
   }
 }

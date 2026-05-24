@@ -134,7 +134,7 @@ class ShipmentSummaryCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Weight: ${package.weight} ${package.weightUnit ?? 'lbs'}',
+                          'Weight: ${package.weight} ${package.weightUnit}',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.textSecondary,
                           ),

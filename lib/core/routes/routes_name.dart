@@ -31,6 +31,9 @@ class RouteNames {
   static const String settings = '/profile/settings';
   static const String changePassword = '/profile/change-password';
 
+  // Shipping Routes
+  static const String shipments = '/shipments';
+
   // Other Routes
   static const String notifications = '/notifications';
   static const String leaderboard = '/leaderboard';

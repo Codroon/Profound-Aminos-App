@@ -12,6 +12,7 @@ import 'package:woo_management_app/features/home/presentation/pages/bottom_nav_p
 import 'package:woo_management_app/widgets/custom_button.dart';
 import 'package:woo_management_app/widgets/custom_loading_widget.dart';
 import 'package:woo_management_app/widgets/custom_text_field.dart';
+import 'package:woo_management_app/core/services/push_notification_service.dart';
 
 import '../../../../core/services/credential_initialization_service.dart';
 
@@ -30,7 +31,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   final _storage = CredentialStorageService();
-  final _secureStorage = const FlutterSecureStorage();
+  final _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      resetOnError: true,
+    ),
+  );
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -105,6 +110,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           '[AdminLogin] Credentials initialized in ApiService',
           name: 'AdminLogin',
         );
+        // Sync push notification token and preferences with the new credentials
+        PushNotificationService.instance.syncPreferences().catchError((e) {
+          log('[AdminLogin] Failed to sync push preferences: $e', name: 'AdminLogin');
+        });
       } catch (e) {
         log(
           '[AdminLogin] Failed to initialize credentials in ApiService: $e',

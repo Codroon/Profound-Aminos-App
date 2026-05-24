@@ -50,19 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDIMJH_KHR_nSwR9NrEzGoOAhNV8IG_JBY',
-    appId: '1:1066867478619:android:f58754a4cc952d2f33af7e',
-    messagingSenderId: '1066867478619',
-    projectId: 'ordermanagementauth',
-    storageBucket: 'ordermanagementauth.firebasestorage.app',
+    apiKey: 'AIzaSyCtJPMxyMJvshlF55bLKplEkW2e3G48XfE',
+    appId: '1:825599803661:android:118b538735af46effcb044',
+    messagingSenderId: '825599803661',
+    projectId: 'profound-aminos-866c8',
+    storageBucket: 'profound-aminos-866c8.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCTXb3q59-aErI_wUfRAJSdLsbLypSIO6g',
-    appId: '1:1066867478619:ios:33f6e47652ac3ccb33af7e',
-    messagingSenderId: '1066867478619',
-    projectId: 'ordermanagementauth',
-    storageBucket: 'ordermanagementauth.firebasestorage.app',
+    apiKey: 'AIzaSyDWOKonJx2DF7Tj19XkDLQZGBe2AwVYVKs',
+    appId: '1:825599803661:ios:95b143104c96eff7fcb044',
+    messagingSenderId: '825599803661',
+    projectId: 'profound-aminos-866c8',
+    storageBucket: 'profound-aminos-866c8.firebasestorage.app',
     iosBundleId: 'com.example.wooManagementApp',
   );
+
 }

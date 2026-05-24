@@ -20,6 +20,11 @@ abstract class AnalyticsRepository {
   Future<int> getOrdersTotalCount({String? after, String? before});
   Future<int> getProductsTotalCount();
   Future<List<dynamic>> getProducts({required int page, required int perPage});
+  Future<Map<String, dynamic>> getRevenueStats({
+    String? after,
+    String? before,
+    String? interval,
+  });
   Future<void> clearAnalyticsCache();
 }
 
@@ -150,6 +155,32 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
       final cachedData = await cacheManager.getCachedData<List<dynamic>>(cacheKey);
       if (cachedData != null) return cachedData;
       throw Exception('No internet and no cached product data.');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getRevenueStats({
+    String? after,
+    String? before,
+    String? interval,
+  }) async {
+    final cacheKey = 'revenue_stats_${after ?? 'all'}_${before ?? 'all'}_${interval ?? 'all'}';
+    if (await networkInfo.isConnected) {
+      final stats = await wooCommerceService.getRevenueStats(
+        after: after,
+        before: before,
+        interval: interval,
+      );
+      await cacheManager.cacheData(
+        cacheKey,
+        stats,
+        duration: StorageConstants.shortCacheDuration,
+      );
+      return stats;
+    } else {
+      final cachedData = await cacheManager.getCachedData<Map<String, dynamic>>(cacheKey);
+      if (cachedData != null) return cachedData;
+      throw Exception('No internet connection and no cached revenue stats.');
     }
   }
 

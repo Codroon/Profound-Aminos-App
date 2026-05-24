@@ -10,12 +10,8 @@ class ResetPasswordPage extends StatefulWidget {
 }
 
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
-  final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
-  final bool _isPasswordVisible = false;
-  final bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -32,33 +28,4 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  void _handleResetPassword() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate back to login
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/auth/login',
-          (route) => false,
-        );
-      });
-    }
-  }
 }

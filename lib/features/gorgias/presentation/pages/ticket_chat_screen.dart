@@ -303,8 +303,8 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                               ),
                               width: 32,
                               height: 32,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF5D2DE6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
                               child: IconButton(
@@ -369,16 +369,25 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
               maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
             decoration: BoxDecoration(
-              color:
-                  isFromCustomer
-                      ? const Color(0xFF314158)
-                      : const Color(0xFF1D293D),
+              color: isFromCustomer
+                  ? (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1E2138)
+                      : const Color(0xFFF1F5F9))
+                  : AppColors.primary,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
                 bottomLeft: Radius.circular(isFromCustomer ? 4 : 16),
                 bottomRight: Radius.circular(isFromCustomer ? 16 : 4),
               ),
+              border: isFromCustomer
+                  ? Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF2D3154)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    )
+                  : null,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,14 +399,14 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                       text: message.sender.name,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: isFromCustomer ? AppColors.textSecondary : Colors.white70,
                     ),
                   ),
                 AppReusableText(
                   text: message.bodyText,
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
-                  color: AppColors.textPrimary,
+                  color: isFromCustomer ? AppColors.textPrimary : Colors.white,
                   maxLines: 50,
                 ),
                 if (message.attachments.isNotEmpty)

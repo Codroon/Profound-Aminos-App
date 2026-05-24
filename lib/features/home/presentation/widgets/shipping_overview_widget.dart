@@ -4,7 +4,18 @@ import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
 class ShippingOverviewWidget extends StatelessWidget {
-  const ShippingOverviewWidget({super.key});
+  final int? pending;
+  final int? inTransit;
+  final int? delivered;
+  final int? total;
+
+  const ShippingOverviewWidget({
+    super.key,
+    this.pending,
+    this.inTransit,
+    this.delivered,
+    this.total,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +34,7 @@ class ShippingOverviewWidget extends StatelessWidget {
             Expanded(
               child: _buildShippingStat(
                 label: 'Pending',
-                value: '24',
+                value: (pending ?? 0).toString(),
                 color: Colors.orange,
               ),
             ),
@@ -31,7 +42,7 @@ class ShippingOverviewWidget extends StatelessWidget {
             Expanded(
               child: _buildShippingStat(
                 label: 'In Transit',
-                value: '18',
+                value: (inTransit ?? 0).toString(),
                 color: Colors.deepPurpleAccent,
               ),
             ),
@@ -39,7 +50,7 @@ class ShippingOverviewWidget extends StatelessWidget {
             Expanded(
               child: _buildShippingStat(
                 label: 'Fulfilled',
-                value: '156',
+                value: (delivered ?? 0).toString(),
                 color: Colors.green,
               ),
             ),
@@ -47,7 +58,7 @@ class ShippingOverviewWidget extends StatelessWidget {
             Expanded(
               child: _buildShippingStat(
                 label: 'Total',
-                value: '198',
+                value: (total ?? 0).toString(),
                 color: AppColors.textPrimary,
               ),
             ),

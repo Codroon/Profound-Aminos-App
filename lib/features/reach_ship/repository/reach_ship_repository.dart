@@ -1,18 +1,15 @@
 import 'package:dio/dio.dart';
 import '../../../core/services/reach_ship_service.dart';
-import '../../../core/constants/reach_ship_constants.dart';
 import '../models/models.dart';
 
 class ReachShipRepository {
   ReachShipService? _reachShipService;
-  final Dio _dio;
   final Future<ReachShipService> _serviceInitializer;
 
   ReachShipRepository({
     required Future<ReachShipService> reachShipService,
     Dio? dio,
-  }) : _serviceInitializer = reachShipService,
-       _dio = dio ?? Dio();
+  }) : _serviceInitializer = reachShipService;
 
   /// Ensure the ReachShip service is initialized
   Future<ReachShipService> _ensureService() async {
@@ -308,9 +305,4 @@ class ReachShipRepository {
     }
   }
 
-  /// Helper method to get base URL from service
-  Future<String> _getBaseUrl() async {
-    // Return the appropriate base URL based on environment
-    return ReachShipConstants.sandboxBaseUrl;
-  }
 }

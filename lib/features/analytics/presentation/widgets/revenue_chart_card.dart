@@ -95,51 +95,60 @@ class RevenueChartCard extends StatelessWidget {
           // ── Chart ──────────────────────────────────────────────────────────
           SizedBox(
             height: 140,
-            child: _hasNoData
+            child: isLoadingRevenue
                 ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.show_chart_rounded,
-                          color: AppColors.textSecondary.withValues(alpha: 0.35),
-                          size: 40,
-                        ),
-                        const Gap(8),
-                        AppReusableText(
-                          text: 'No revenue data for this period',
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          textAlignment: TextAlign.center,
-                        ),
-                      ],
+                    child: AnimatedDots(
+                      color: AppColors.primary,
+                      dotSize: 10,
+                      spacing: 6,
                     ),
                   )
-                : LineChart(_buildChart()),
+                : _hasNoData
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.show_chart_rounded,
+                              color: AppColors.textSecondary.withValues(alpha: 0.35),
+                              size: 40,
+                            ),
+                            const Gap(8),
+                            AppReusableText(
+                              text: 'No revenue data for this period',
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              textAlignment: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    : LineChart(_buildChart()),
           ),
           const Gap(8),
 
           // ── X-axis labels ──────────────────────────────────────────────────
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: xLabels.asMap().entries.map((e) {
-                return SizedBox(
-                  width: xLabels.length <= 7
-                      ? 320 / xLabels.length
-                      : 44,
-                  child: Center(
-                    child: AppReusableText(
-                      text: e.value,
-                      fontSize: 10,
-                      color: AppColors.textSecondary,
-                      textAlignment: TextAlign.center,
+          if (!isLoadingRevenue && xLabels.isNotEmpty)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: xLabels.asMap().entries.map((e) {
+                  return SizedBox(
+                    width: xLabels.length <= 7
+                        ? 320 / xLabels.length
+                        : 44,
+                    child: Center(
+                      child: AppReusableText(
+                        text: e.value,
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                        textAlignment: TextAlign.center,
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
           const Gap(20),
 
           // ── Divider ────────────────────────────────────────────────────────
@@ -165,6 +174,8 @@ class RevenueChartCard extends StatelessWidget {
     final maxY = chartSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
     final effectiveMax = maxY < 1 ? 1.0 : maxY * 1.2;
 
+    final double maxXVal = chartSpots.length <= 1 ? 1.0 : (chartSpots.length - 1).toDouble();
+
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -179,7 +190,7 @@ class RevenueChartCard extends StatelessWidget {
       borderData: FlBorderData(show: false),
       clipData: const FlClipData.all(),
       minX: 0,
-      maxX: (chartSpots.length - 1).toDouble(),
+      maxX: maxXVal,
       minY: 0,
       maxY: effectiveMax,
       titlesData: const FlTitlesData(

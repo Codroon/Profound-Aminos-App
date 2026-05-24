@@ -50,3 +50,6 @@ lib/core/services/gorgias_service.dart
 lib/features/word_press/presentation/pages/
 lib/features/products/presentation/pages/create_product_page.dart
 lib/features/products/presentation/pages/edit_product_page.dart
+
+# Firebase local migration assets
+firebase_migration/

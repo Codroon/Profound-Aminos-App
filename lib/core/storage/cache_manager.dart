@@ -35,7 +35,6 @@ class CacheManager {
   }) async {
     try {
       final expiryTime = DateTime.now().add(duration);
-      final cacheItem = CacheItem<T>(data: data, expiryTime: expiryTime);
 
       String cacheData;
       if (T == String || T == int || T == double || T == bool) {

@@ -5,14 +5,13 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
-import 'package:woo_management_app/widgets/custom_loading_widget.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
 import '../../bloc/product_bloc.dart';
 import '../../bloc/product_event.dart';
 import '../../bloc/product_state.dart';
 import '../widgets/product_card.dart';
+import '../widgets/products_list_shimmer.dart';
 import 'create_product_page.dart';
-import 'edit_product_page.dart';
 
 class WooAllProductsPage extends StatefulWidget {
   const WooAllProductsPage({super.key});
@@ -200,11 +199,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
               },
               builder: (context, state) {
                 if (state is ProductLoading && _allProducts.isEmpty) {
-                  return const Center(
-                    child: CustomLoadingWidget(
-                      text: 'Getting your products...',
-                    ),
-                  );
+                  return const ProductsListShimmer(itemCount: 8);
                 }
                 // Show loading indicator when searching
                 if (state is ProductLoading &&
@@ -212,32 +207,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                     _searchQuery.isNotEmpty) {
                   return Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            Icon(Icons.search, color: AppColors.primary),
-                            Gap(8),
-                            Expanded(
-                              child: AppReusableText(
-                                text: 'Searching for "$_searchQuery"...',
-                                fontSize: 14,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const ProductSearchShimmer(),
                       if (_allProducts.isNotEmpty)
                         Expanded(
                           child: Opacity(
@@ -251,7 +221,14 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                                 final product = _allProducts[index];
                                 return ProductCard(
                                   product: product,
-                                  onEdit: () {},
+                                  onEdit: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CreateProductPage(product: product),
+                                      ),
+                                    );
+                                  },
                                   onDelete: () {
                                     // Immediately remove the product from the local list
                                     setState(() {
@@ -335,12 +312,8 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                   itemBuilder: (context, index) {
                     if (index == _allProducts.length) {
                       return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: CustomLoadingWidget(
-                            text: 'Loading more products...',
-                          ),
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        child: ProductsListShimmer(itemCount: 2),
                       );
                     }
 
@@ -352,7 +325,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => EditProductPage(product: product),
+                                (context) => CreateProductPage(product: product),
                           ),
                         );
                       },

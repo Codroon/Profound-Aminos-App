@@ -791,7 +791,7 @@ class _CreateShipmentPageState extends State<CreateShipmentPage> {
           toAddress: _toAddress!,
           packages: _packages,
           rateId: _selectedRate!.id,
-          carrier: _selectedRate!.carrier ?? 'ups',
+          carrier: _selectedRate!.carrier,
           metadata: {
             'signature_required': _requireSignature,
             'saturday_delivery': _saturdayDelivery,

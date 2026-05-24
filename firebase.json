@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"ordermanagementauth","appId":"1:1066867478619:android:f58754a4cc952d2f33af7e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"ordermanagementauth","configurations":{"android":"1:1066867478619:android:f58754a4cc952d2f33af7e","ios":"1:1066867478619:ios:33f6e47652ac3ccb33af7e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "profound-aminos-866c8",
+          "appId": "1:825599803661:android:118b538735af46effcb044",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "profound-aminos-866c8",
+          "configurations": {
+            "android": "1:825599803661:android:118b538735af46effcb044",
+            "ios": "1:825599803661:ios:95b143104c96eff7fcb044"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}

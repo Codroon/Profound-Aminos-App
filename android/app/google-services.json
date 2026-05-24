@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1066867478619",
-    "project_id": "ordermanagementauth",
-    "storage_bucket": "ordermanagementauth.firebasestorage.app"
+    "project_number": "825599803661",
+    "project_id": "profound-aminos-866c8",
+    "storage_bucket": "profound-aminos-866c8.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1066867478619:android:f58754a4cc952d2f33af7e",
+        "mobilesdk_app_id": "1:825599803661:android:118b538735af46effcb044",
         "android_client_info": {
           "package_name": "com.profound_aminos.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDIMJH_KHR_nSwR9NrEzGoOAhNV8IG_JBY"
+          "current_key": "AIzaSyCtJPMxyMJvshlF55bLKplEkW2e3G48XfE"
         }
       ],
       "services": {

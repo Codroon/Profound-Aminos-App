@@ -14,10 +14,14 @@ class TopProductsCard extends StatefulWidget {
   /// Products list — used to look up product images.
   final List<dynamic> products;
 
+  /// Callback when "View all products" is tapped.
+  final VoidCallback? onViewAll;
+
   const TopProductsCard({
     super.key,
     required this.allOrders,
     required this.products,
+    this.onViewAll,
   });
 
   @override
@@ -119,6 +123,29 @@ class _TopProductsCardState extends State<TopProductsCard> {
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),
+              Spacer(),
+              if (widget.onViewAll != null) ...[
+                const Gap(12),
+                GestureDetector(
+                  onTap: widget.onViewAll,
+                  child: Row(
+                    children: [
+                      AppReusableText(
+                        text: 'View All Products',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                      const Gap(2),
+                      Icon(
+                        Iconsax.arrow_right_3_outline,
+                        color: AppColors.primary,
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
           const Gap(16),
@@ -164,6 +191,30 @@ class _TopProductsCardState extends State<TopProductsCard> {
           else
             ...topProducts.map((p) => _ProductRow(sale: p)),
 
+          // // ── View all link ─────────────────────────────────────────────────
+          // if (widget.onViewAll != null) ...[
+          //   const Gap(16),
+          //   GestureDetector(
+          //     onTap: widget.onViewAll,
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         AppReusableText(
+          //           text: 'View all products',
+          //           fontSize: 13,
+          //           fontWeight: FontWeight.w600,
+          //           color: AppColors.primary,
+          //         ),
+          //         const Gap(4),
+          //         Icon(
+          //           Iconsax.arrow_right_3_outline,
+          //           color: AppColors.primary,
+          //           size: 16,
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ],
         ],
       ),
     );

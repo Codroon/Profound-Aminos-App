@@ -10,6 +10,7 @@ abstract class GorgiasRepository {
   Future<Map<String, dynamic>> getTickets({
     String? status,
     String? assignedTo,
+    String? channel,
     int page = 1,
     int perPage = 20,
   });
@@ -77,11 +78,12 @@ class GorgiasRepositoryImpl implements GorgiasRepository {
   Future<Map<String, dynamic>> getTickets({
     String? status,
     String? assignedTo,
+    String? channel,
     int page = 1,
     int perPage = 20,
   }) async {
     final cacheKey =
-        '${_ticketsCacheKey}_${status ?? 'all'}_${assignedTo ?? 'all'}_${page}_$perPage';
+        '${_ticketsCacheKey}_${status ?? 'all'}_${assignedTo ?? 'all'}_${channel ?? 'all'}_${page}_$perPage';
 
     // Try to get from cache first
     if (await _networkInfo.isConnected) {
@@ -161,6 +163,14 @@ class GorgiasRepositoryImpl implements GorgiasRepository {
           tickets = tickets.where((ticket) {
             final ticketStatus = ticket['status']?.toString().toLowerCase();
             return ticketStatus == status.toLowerCase();
+          }).toList();
+        }
+
+        // Apply client-side channel filtering if channel is specified
+        if (channel != null && channel.isNotEmpty && channel != 'all') {
+          tickets = tickets.where((ticket) {
+            final ticketChannel = ticket['channel']?.toString().toLowerCase();
+            return ticketChannel == channel.toLowerCase();
           }).toList();
         }
 

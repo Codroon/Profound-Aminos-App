@@ -122,9 +122,9 @@ class SalesOverviewCard extends StatelessWidget {
                         ),
                       ],
                       minX: 0,
-                      maxX: chartData.isNotEmpty 
-                          ? chartData.length.toDouble() - 1 
-                          : 1, // Max X based on data points
+                      maxX: chartData.length <= 1 
+                          ? 1.0 
+                          : chartData.length.toDouble() - 1,
                       minY: chartData.isNotEmpty 
                           ? chartData.map((e) => e.y).reduce((a, b) => a < b ? a : b) 
                           : 0, // Dynamic min Y

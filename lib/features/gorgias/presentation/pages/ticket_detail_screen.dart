@@ -173,6 +173,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.cardDark,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.border.withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(
+                          Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.04
+                        ),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -192,10 +205,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         initialValue: selectedStatus,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color(0xFF314158),
+                          fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1D2036) : const Color(0xFFF1F5F9),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(28),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide(color: AppColors.border.withOpacity(0.2)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide(color: AppColors.primary, width: 1.2),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -236,10 +257,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         initialValue: selectedAssignee,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color(0xFF314158),
+                          fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1D2036) : const Color(0xFFF1F5F9),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(28),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide(color: AppColors.border.withOpacity(0.2)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide(color: AppColors.primary, width: 1.2),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -283,7 +312,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       const Gap(8),
                       CustomTextField(
                         borderRadius: 12,
-                        filledColor: const Color(0xFF314158),
+                        filledColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1D2036) : const Color(0xFFF1F5F9),
                         controller: noteController,
                         hintText: 'Add internal note...',
                         maxLines: 3,

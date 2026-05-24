@@ -11,6 +11,7 @@ import '../../bloc/auth_state.dart';
 import '../../../home/presentation/pages/bottom_nav_page.dart';
 import '../../../../core/services/firestore_credentials_service.dart';
 import '../../../../core/services/crediential_storage_service.dart';
+import '../../../../core/services/push_notification_service.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -98,6 +99,10 @@ class _SetupScreenState extends State<SetupScreen> {
               _credentialsTested = true;
               context.read<AuthBloc>().add(SubmitCredentials(Map.from(creds)));
             } else {
+              // Sync push notification token and preferences
+              PushNotificationService.instance.syncPreferences().catchError((e) {
+                debugPrint('[SetupScreen] Failed to sync push preferences: $e');
+              });
               // After save, show snackbar and navigate
               ToastUtils.showSuccessToast(
                 context,
@@ -265,6 +270,11 @@ class _SetupScreenState extends State<SetupScreen> {
         });
       });
 
+      // Sync push notification preferences
+      PushNotificationService.instance.syncPreferences().catchError((e) {
+        debugPrint('[SetupScreen] Failed to sync push preferences: $e');
+      });
+
       ToastUtils.showSuccessToast(
         context,
         title: 'Success',
@@ -306,6 +316,11 @@ class _SetupScreenState extends State<SetupScreen> {
       await _firestoreService.uploadCredentialsToFirestore();
 
       Navigator.of(context).pop(); // Close loading dialog
+
+      // Sync push notification preferences
+      PushNotificationService.instance.syncPreferences().catchError((e) {
+        debugPrint('[SetupScreen] Failed to sync push preferences: $e');
+      });
 
       ToastUtils.showSuccessToast(
         context,

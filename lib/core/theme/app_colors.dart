@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeManager {
   static final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier(ThemeMode.dark);
   
   static bool get isDarkMode => themeModeNotifier.value == ThemeMode.dark;
   
-  static void toggleTheme() {
-    themeModeNotifier.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
+  static Future<void> initialize() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isDark = prefs.getBool('isDarkMode') ?? true; // Default to dark mode
+      themeModeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
+    } catch (e) {
+      debugPrint('[ThemeManager] Init failed: $e');
+    }
+  }
+  
+  static Future<void> toggleTheme() async {
+    final newMode = isDarkMode ? ThemeMode.light : ThemeMode.dark;
+    themeModeNotifier.value = newMode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkMode', newMode == ThemeMode.dark);
+    } catch (e) {
+      debugPrint('[ThemeManager] Toggle failed: $e');
+    }
   }
 }
 
@@ -16,7 +34,6 @@ class AppColors {
   static const Color _cardDark = Color(0xFF15182B);
   static const Color _textDark = Color(0xFFEAF0FF);
   static const Color _subtextDark = Color(0xFF98A0B8);
-  static const Color _botBarBgDark = Color(0xFF15182B);
   static const List<Color> _buttonGradientDark = [Color(0xFF6C4CF1), Color(0xFF8E6BFF)];
   
   // Light Mode Spec provided by user
@@ -47,6 +64,9 @@ class AppColors {
   static Color get surfaceDark => _isDark ? _cardDark : _cardLight;
   static Color get surfaceLight => _isDark ? _cardDark : _cardLight;
   static Color get greyB3 => _isDark ? _subtextDark : _subtextLight;
+
+  // Input Field Background
+  static Color get inputField => const Color(0xFF2D2D3D);
 
   // Game/Theme Accent Colors
   static Color get multiplierGreen => const Color(0xFF009440);

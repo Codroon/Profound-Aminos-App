@@ -89,44 +89,50 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
       final perPage = (event.tabIndex == 0) ? 10 : 20;
 
       final results = await Future.wait([
-        repository.getSalesReport(dateMin: dateMin, dateMax: dateMax),
+        repository.getRevenueStats(
+          after: '${dateMin}T00:00:00',
+          before: '${dateMax}T23:59:59',
+          interval: 'day',
+        ),
         repository.getOrders(page: 1, perPage: perPage),
         repository.getProducts(page: 1, perPage: perPage),
         if (_sharedCacheValid)
-          Future.value(<dynamic>[])
+          Future.value(<String, dynamic>{})
         else
-          repository.getSalesReport(
-              dateMin: allTimeMin, dateMax: dateMax, period: 'year'),
+          repository.getRevenueStats(
+            after: '${allTimeMin}T00:00:00',
+            before: '${dateMax}T23:59:59',
+            interval: 'year',
+          ),
+        Future<dynamic>.value(0), // Placeholder to maintain indexes
         if (_sharedCacheValid)
-          Future<dynamic>.value(0)
+          Future.value(<String, dynamic>{})
         else
-          repository.getOrdersTotalCount(),
-        if (_sharedCacheValid)
-          Future<dynamic>.value(0)
-        else
-          repository.getOrdersTotalCount(
-              after:
-                  '${now.year}-${now.month.toString().padLeft(2, '0')}-01T00:00:00'),
+          repository.getRevenueStats(
+            after: '${now.year}-${now.month.toString().padLeft(2, '0')}-01T00:00:00',
+            before: '${dateMax}T23:59:59',
+          ),
         if (_sharedCacheValid)
           Future<dynamic>.value(0)
         else
           repository.getProductsTotalCount(),
       ]);
 
-      final tabSalesReport = results[0] as List<dynamic>;
+      final tabRevenueStats = results[0] as Map<String, dynamic>;
       _ordersCache = results[1] as List<dynamic>;
       final products = results[2] as List<dynamic>;
 
       if (!_sharedCacheValid) {
-        final allTimeSales = results[3] as List<dynamic>;
-        _allTimeRevenueCache = allTimeSales.fold<double>(
-            0,
-            (sum, item) =>
-                sum +
-                (double.tryParse(item['total_sales']?.toString() ?? '0') ??
-                    0));
-        _ordersTotalCache = results[4] as int;
-        _thisMonthOrdersCache = results[5] as int;
+        final allTimeStats = results[3] as Map<String, dynamic>;
+        final allTimeTotals = allTimeStats['totals'] as Map<String, dynamic>? ?? {};
+        
+        _allTimeRevenueCache = double.tryParse(allTimeTotals['net_revenue']?.toString() ?? '0') ?? 0.0;
+        _ordersTotalCache = int.tryParse(allTimeTotals['orders_count']?.toString() ?? '0') ?? 0;
+        
+        final thisMonthStats = results[5] as Map<String, dynamic>;
+        final thisMonthTotals = thisMonthStats['totals'] as Map<String, dynamic>? ?? {};
+        _thisMonthOrdersCache = int.tryParse(thisMonthTotals['orders_count']?.toString() ?? '0') ?? 0;
+        
         _totalProductCountCache = results[6] as int;
         _sharedCacheUpdated = now;
       }
@@ -136,11 +142,8 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
         return date.isAfter(start);
       }).toList();
 
-      final double netSales = tabSalesReport.fold<double>(
-          0,
-          (sum, item) =>
-              sum +
-              (double.tryParse(item['net_sales']?.toString() ?? '0') ?? 0));
+      final tabTotals = tabRevenueStats['totals'] as Map<String, dynamic>? ?? {};
+      final double netSales = double.tryParse(tabTotals['net_revenue']?.toString() ?? '0') ?? 0.0;
 
       emit(AnalyticsLoaded(
         0,
@@ -174,12 +177,8 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
       FetchRevenueReport event, Emitter<AnalyticsState> emit) async {
     final currentState = state;
 
-    // Guard: if state is not loaded yet, silently return.
-    // This should not happen since we trigger from within _onFetchAnalytics,
-    // but kept as a safety net.
     if (currentState is! AnalyticsLoaded) return;
 
-    // Emit isRevenueLoading=true and clear stale data for the old period
     emit(currentState.copyWith(
       isRevenueLoading: true,
       selectedPeriod: Nullable<RevenuePeriod?>(event.period),
@@ -192,122 +191,98 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
       final now = DateTime.now();
       String? dateMin;
       String? dateMax;
-      String? period;
+      String? interval;
 
       switch (event.period) {
         case RevenuePeriod.today:
           dateMin = _formatDate(now);
           dateMax = _formatDate(now);
+          interval = 'day';
           break;
         case RevenuePeriod.thisWeek:
           dateMin = _formatDate(now.subtract(Duration(days: now.weekday - 1)));
           dateMax = _formatDate(now);
+          interval = 'day';
           break;
         case RevenuePeriod.thisMonth:
           dateMin = '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
           dateMax = _formatDate(now);
+          interval = 'day';
           break;
         case RevenuePeriod.thisYear:
           dateMin = '${now.year}-01-01';
           dateMax = _formatDate(now);
-          period = 'month';
+          interval = 'month';
           break;
         case RevenuePeriod.allTime:
           dateMin = '2010-01-01';
           dateMax = _formatDate(now);
-          period = 'year';
+          interval = 'year';
           break;
       }
 
-      final reportData = await repository.getSalesReport(
-        dateMin: dateMin,
-        dateMax: dateMax,
-        period: period,
+      final reportMap = await repository.getRevenueStats(
+        after: '${dateMin}T00:00:00',
+        before: '${dateMax}T23:59:59',
+        interval: interval,
       );
 
-      if (reportData.isEmpty) {
-        emit(currentState.copyWith(
-          isRevenueLoading: false,
-          revenueReport: const Nullable<SalesReportModel?>(null),
-          reportChartSpots: Nullable<List<FlSpot>?>(<FlSpot>[]),
-          reportXLabels: Nullable<List<String>?>(<String>[]),
-          selectedPeriod: Nullable<RevenuePeriod?>(event.period),
-        ));
-        return;
-      }
+      final combinedReport = SalesReportModel.fromAnalyticsJson(reportMap);
 
-      SalesReportModel? combinedReport;
       final spots = <FlSpot>[];
       final labels = <String>[];
       int spotIndex = 0;
 
-      for (final item in reportData) {
-        final model = SalesReportModel.fromJson(item as Map<String, dynamic>);
+      final sortedDates = combinedReport.totals.keys.toList()..sort();
+      for (final dateKey in sortedDates) {
+        final data = combinedReport.totals[dateKey]!;
+        // Plot data.sales directly since fromAnalyticsJson maps net_revenue to sales
+        spots.add(FlSpot(spotIndex.toDouble(), data.sales));
 
-        if (combinedReport == null) {
-          combinedReport = model;
-        } else {
-          // Merge multiple response items into one aggregate model
-          combinedReport = SalesReportModel(
-            totalSales: combinedReport.totalSales + model.totalSales,
-            netSales: combinedReport.netSales + model.netSales,
-            averageSales: combinedReport.averageSales,
-            totalOrders: combinedReport.totalOrders + model.totalOrders,
-            totalItems: combinedReport.totalItems + model.totalItems,
-            totalTax: combinedReport.totalTax + model.totalTax,
-            totalShipping: combinedReport.totalShipping + model.totalShipping,
-            totalRefunds: combinedReport.totalRefunds + model.totalRefunds,
-            totalDiscount: combinedReport.totalDiscount + model.totalDiscount,
-            totalsGroupedBy: combinedReport.totalsGroupedBy,
-            totals: {...combinedReport.totals, ...model.totals},
-          );
-        }
-
-        final sortedDates = model.totals.keys.toList()..sort();
-        for (final dateKey in sortedDates) {
-          final data = model.totals[dateKey]!;
-          spots.add(FlSpot(spotIndex.toDouble(), data.sales));
-
-          final date = DateTime.tryParse(dateKey);
-          if (date != null) {
-            switch (event.period) {
-              case RevenuePeriod.today:
-                labels.add('${date.day}/${date.month}');
-                break;
-              case RevenuePeriod.thisWeek:
-                const weekDays = [
-                  'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-                ];
-                labels.add(weekDays[date.weekday - 1]);
-                break;
-              case RevenuePeriod.thisMonth:
-                labels.add(date.day.toString());
-                break;
-              case RevenuePeriod.thisYear:
-                const months = [
-                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                ];
-                labels.add(months[date.month - 1]);
-                break;
-              case RevenuePeriod.allTime:
-                labels.add(date.year.toString());
-                break;
-            }
-          } else {
-            labels.add(dateKey.split('-').last);
+        final date = DateTime.tryParse(dateKey);
+        if (date != null) {
+          switch (event.period) {
+            case RevenuePeriod.today:
+              labels.add('${date.day}/${date.month}');
+              break;
+            case RevenuePeriod.thisWeek:
+              const weekDays = [
+                'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+              ];
+              labels.add(weekDays[date.weekday - 1]);
+              break;
+            case RevenuePeriod.thisMonth:
+              labels.add(date.day.toString());
+              break;
+            case RevenuePeriod.thisYear:
+              const months = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+              ];
+              labels.add(months[date.month - 1]);
+              break;
+            case RevenuePeriod.allTime:
+              labels.add(date.year.toString());
+              break;
           }
-
-          spotIndex++;
+        } else {
+          labels.add(dateKey.split('-').last);
         }
+
+        spotIndex++;
       }
 
       // Today fallback: totals map may be empty but top-level netSales exists
       if (event.period == RevenuePeriod.today &&
-          spots.isEmpty &&
-          combinedReport != null) {
+          spots.isEmpty) {
         spots.add(FlSpot(0, combinedReport.netSales));
         labels.add('Today');
+      }
+
+      // Ensure at least 2 spots to draw a line and avoid fl_chart assertion crash (maxX > minX)
+      if (spots.length == 1) {
+        spots.add(FlSpot(1.0, spots[0].y));
+        labels.add('');
       }
 
       emit(currentState.copyWith(

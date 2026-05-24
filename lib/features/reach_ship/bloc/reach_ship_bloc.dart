@@ -42,6 +42,7 @@ class ReachShipBloc extends Bloc<ReachShipEvent, ReachShipState> {
       List<ConnectivityResult> results,
     ) {
       if (results.contains(ConnectivityResult.none) || results.isEmpty) {
+        // ignore: invalid_use_of_visible_for_testing_member
         emit(
           const ReachShipError(
             message: 'No internet connection available',

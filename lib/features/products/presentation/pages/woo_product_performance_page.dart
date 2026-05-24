@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/features/products/presentation/widgets/product_chart_card.dart';
 import 'package:woo_management_app/features/products/presentation/widgets/product_performance_shimmer.dart';
 import 'package:woo_management_app/features/products/presentation/widgets/top_products_card.dart';
@@ -249,6 +250,9 @@ class _WooProductPerformancePageState
                   TopProductsCard(
                     allOrders: allOrders,
                     products: state.products,
+                    onViewAll: () {
+                      Navigator.pushNamed(context, RouteNames.wooAllProduct);
+                    },
                   ),
                   const SizedBox(height: 24),
                 ],

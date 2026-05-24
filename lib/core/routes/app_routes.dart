@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/gorgias_dashboard.dart';
 import 'package:woo_management_app/features/products/presentation/pages/woo_all_products_page.dart';
@@ -7,8 +8,12 @@ import 'package:woo_management_app/features/products/presentation/pages/woo_prod
 import '../../features/analytics/presentation/pages/analytics_page.dart';
 import '../../features/home/presentation/pages/bottom_nav_page.dart';
 import '../../features/home/presentation/widgets/woo_all_orders_page.dart';
+import '../../features/shipping/bloc/shipping_bloc.dart';
+import '../../features/shipping/presentation/pages/all_shipments_page.dart';
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       // Auth Routes
@@ -29,20 +34,26 @@ class AppRouter {
       case RouteNames.analytics:
         return MaterialPageRoute(builder: (_) => const AnalyticsPage());
       case RouteNames.gorgiasDashboard:
-        return MaterialPageRoute(builder: (_) => GorgiasDashboard());
+        final ticketId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => GorgiasDashboard(highlightTicketId: ticketId),
+        );
       case RouteNames.wooAllOrders:
-        return MaterialPageRoute(builder: (_) => WooAllOrdersPage());
-      //
-      // // Other Routes
-      // case RouteNames.notifications:
-      //   return MaterialPageRoute(builder: (_) => const NotificationsPage());
-      // case RouteNames.leaderboard:
-      //   return MaterialPageRoute(builder: (_) => const LeaderboardPage());
-      // case RouteNames.bettingHistory:
-      //   return MaterialPageRoute(builder: (_) => const BettingHistoryPage());
-      // case RouteNames.bettingStats:
-      //   return MaterialPageRoute(builder: (_) => const BettingStatsPage());
-
+        final orderId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => WooAllOrdersPage(highlightOrderId: orderId),
+        );
+      
+      // Shipping Routes
+      case RouteNames.shipments:
+        final shipmentId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (context) => ShippingBloc(),
+            child: AllShipmentsPage(highlightShipmentId: shipmentId),
+          ),
+        );
+      
       // Default - Page Not Found
       default:
         return MaterialPageRoute(
@@ -56,3 +67,4 @@ class AppRouter {
     }
   }
 }
+

@@ -103,7 +103,6 @@ class ReachShipRoutes {
             settings: settings,
           );
         case 'edit':
-          final shipmentId = uri.pathSegments[2];
           final args = settings.arguments as Map<String, dynamic>?;
           return MaterialPageRoute(
             builder:

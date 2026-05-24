@@ -20,9 +20,9 @@ class ShipmentListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(
-      shipment.status.toString() ?? 'unknown',
+      shipment.status.toString(),
     );
-    final statusIcon = _getStatusIcon(shipment.status.toString() ?? 'unknown');
+    final statusIcon = _getStatusIcon(shipment.status.toString());
 
     return Container(
       decoration: BoxDecoration(
@@ -144,7 +144,7 @@ class ShipmentListItem extends StatelessWidget {
                           SizedBox(width: 4),
                           Text(
                             _getStatusDisplayText(
-                              shipment.status.toString() ?? 'unknown',
+                              shipment.status.toString(),
                             ),
                             style: AppTextStyles.bodySmall.copyWith(
                               color: statusColor,

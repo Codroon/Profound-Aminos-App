@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
@@ -9,7 +10,9 @@ import '../../../analytics/bloc/analytics_bloc.dart';
 import '../../../analytics/bloc/analytics_state.dart';
 
 class CurrentOrdersWidget extends StatelessWidget {
-  const CurrentOrdersWidget({super.key});
+  final List<dynamic> cachedOrders;
+  
+  const CurrentOrdersWidget({super.key, this.cachedOrders = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -43,77 +46,182 @@ class CurrentOrdersWidget extends StatelessWidget {
             const Gap(24),
             BlocBuilder<AnalyticsBloc, AnalyticsState>(
               builder: (context, state) {
-                if (state is AnalyticsLoading) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (state is AnalyticsLoaded) {
-                  if (state.allOrders.isEmpty) {
-                    return Center(
-                      child: Column(
-                        children: [
-                          Icon(
-                            Iconsax.shopping_cart_outline,
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
-                            size: 40,
-                          ),
-                          const Gap(8),
-                          AppReusableText(
-                            text: 'No orders found',
-                            fontSize: 14,
-                            color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Show only the first 3 orders
-                  final ordersToShow = state.allOrders.take(3).toList();
-
+                // Determine which orders to show - prefer live data, fallback to cache
+                List<dynamic> ordersToShow = [];
+                bool isLoading = false;
+                
+                if (state is AnalyticsLoaded) {
+                  ordersToShow = state.allOrders.take(3).toList();
+                } else if (cachedOrders.isNotEmpty) {
+                  // Use cached orders while loading
+                  ordersToShow = cachedOrders;
+                  isLoading = state is AnalyticsLoading;
+                } else if (state is AnalyticsLoading) {
+                  // Only show loading if no cache at all
+                  isLoading = true;
+                }
+                
+                // Show cached orders immediately - no loading spinner
+                if (ordersToShow.isNotEmpty) {
                   return Column(
-                    children:
-                        ordersToShow.map((order) {
-                          return _OrderItem(order: order);
-                        }).toList(),
+                    children: ordersToShow.map((order) {
+                      return _OrderItem(order: order);
+                    }).toList(),
                   );
-                } else {
-                  // Error or initial state with error UI from screenshot
+                }
+                
+                // Show shimmer loading effect instead of circular indicator
+                if (isLoading) {
+                  return _buildOrdersShimmer();
+                }
+                
+                // Empty state
+                if (state is AnalyticsLoaded && state.allOrders.isEmpty) {
                   return Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.red, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.priority_high,
-                            color: Colors.red,
-                            size: 40,
-                          ),
-                        ),
-                        const Gap(16),
-                        const AppReusableText(
-                          text: 'Failed to load orders',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
+                        Icon(
+                          Iconsax.shopping_cart_outline,
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          size: 40,
                         ),
                         const Gap(8),
+                        AppReusableText(
+                          text: 'No orders found',
+                          fontSize: 14,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        ),
                       ],
                     ),
                   );
                 }
+                
+                // Error state
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.red, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.priority_high,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                      ),
+                      const Gap(16),
+                      const AppReusableText(
+                        text: 'Failed to load orders',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                      const Gap(8),
+                    ],
+                  ),
+                );
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build shimmer effect for orders loading state
+  Widget _buildOrdersShimmer() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.cardDark,
+      highlightColor: const Color(0xFF2D3142), // Lighter than cardDark for visible shimmer
+      child: Column(
+        children: [
+          _buildOrderShimmerItem(),
+          const Gap(12),
+          _buildOrderShimmerItem(),
+          const Gap(12),
+          _buildOrderShimmerItem(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderShimmerItem() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white, // White so shimmer gradient is visible
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          // Icon placeholder
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white, // White so shimmer gradient is visible
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          Gap(12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Order ID and price row
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White so shimmer gradient is visible
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 50,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White so shimmer gradient is visible
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(8),
+                // Customer and status row
+                Row(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White so shimmer gradient is visible
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 60,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White so shimmer gradient is visible
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -145,7 +145,6 @@ class WooCommerceService {
     }
   }
 
-  // RESTORED: Missing Product Management Methods
   Future<Map<String, dynamic>> createProduct(Map<String, dynamic> data) async {
     await _loadCredentials();
     try {
@@ -182,6 +181,31 @@ class WooCommerceService {
         queryParameters: {'force': true},
         options: Options(headers: _basicAuthHeader()),
       );
+    } catch (e) {
+      throw ErrorHandler.handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getRevenueStats({
+    String? after,
+    String? before,
+    String? interval,
+  }) async {
+    await _loadCredentials();
+    try {
+      final Map<String, dynamic> params = {};
+      if (after != null) params['after'] = after;
+      if (before != null) params['before'] = before;
+      if (interval != null) params['interval'] = interval;
+
+      final response = await _dio.get(
+        '$_baseUrl/wp-json/wc-analytics/reports/revenue/stats',
+        queryParameters: _urlParams(params),
+        options: Options(headers: _basicAuthHeader()),
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw ErrorHandler.handleDioError(e);
     } catch (e) {
       throw ErrorHandler.handleError(e);
     }

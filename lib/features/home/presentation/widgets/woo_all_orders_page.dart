@@ -1,30 +1,137 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
-import 'package:woo_management_app/widgets/custom_loading_widget.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
-import '../../../analytics/bloc/analytics_bloc.dart';
-import '../../../analytics/bloc/analytics_state.dart';
-import '../../../analytics/bloc/analytics_event.dart';
+import 'package:woo_management_app/widgets/pagination_controls.dart';
+import '../../../../core/services/woocommerce_service.dart';
+import 'package:woo_management_app/widgets/highlight_container.dart';
+
 
 class WooAllOrdersPage extends StatefulWidget {
-  const WooAllOrdersPage({super.key});
+  final String? highlightOrderId;
+  const WooAllOrdersPage({super.key, this.highlightOrderId});
 
   @override
   State<WooAllOrdersPage> createState() => _WooAllOrdersPageState();
 }
 
 class _WooAllOrdersPageState extends State<WooAllOrdersPage> {
+  static const int _perPage = 10;
+
+  final WooCommerceService _wooService = WooCommerceService();
+  final ScrollController _scrollController = ScrollController();
+
+  /// Cache of previously loaded pages: page number → list of orders
+  final Map<int, List<dynamic>> _pageCache = {};
+
+  int _currentPage = 1;
+  List<dynamic> _orders = [];
+  bool _isLoading = true;
+  bool _hasNextPage = true;
+  String? _errorMessage;
+  String? _currentHighlightId;
+  bool _scrolledToHighlight = false;
+
   @override
   void initState() {
     super.initState();
-    // Ensure orders are fetched/refreshed when this page opens
-    final bloc = context.read<AnalyticsBloc>();
-    if (bloc.state is! AnalyticsLoaded) {
-      bloc.add(const FetchAnalytics(0));
+    _currentHighlightId = widget.highlightOrderId;
+    _fetchOrders();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchOrders() async {
+    // If page is already cached, use cached data instantly
+    if (_pageCache.containsKey(_currentPage)) {
+      setState(() {
+        _orders = _pageCache[_currentPage]!;
+        _hasNextPage = _orders.length >= _perPage;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+      _triggerScrollAndHighlight();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final orders = await _wooService.getOrders(
+        page: _currentPage,
+        perPage: _perPage,
+      );
+
+      if (mounted) {
+        // Cache the fetched page
+        _pageCache[_currentPage] = orders;
+        setState(() {
+          _orders = orders;
+          _hasNextPage = orders.length >= _perPage;
+          _isLoading = false;
+        });
+        _triggerScrollAndHighlight();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load orders';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _goToNextPage() {
+    if (_hasNextPage && !_isLoading) {
+      setState(() => _currentPage++);
+      _fetchOrders();
+    }
+  }
+
+  void _goToPreviousPage() {
+    if (_currentPage > 1 && !_isLoading) {
+      setState(() => _currentPage--);
+      _fetchOrders(); // Will hit cache instantly
+    }
+  }
+
+  final GlobalKey _highlightKey = GlobalKey();
+
+  void _triggerScrollAndHighlight() {
+    if (_currentHighlightId != null && !_scrolledToHighlight) {
+      _scrolledToHighlight = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Wait a slight delay for list viewport rendering
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (_highlightKey.currentContext != null) {
+            Scrollable.ensureVisible(
+              _highlightKey.currentContext!,
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOutCubic,
+              alignment: 0.35, // Centers the item beautifully in the visible viewport
+            );
+            // Auto-clear highlight state after 3 seconds
+            Future.delayed(const Duration(seconds: 3), () {
+              if (mounted) {
+                setState(() {
+                  _currentHighlightId = null;
+                });
+              }
+            });
+          }
+        });
+      });
     }
   }
 
@@ -32,173 +139,216 @@ class _WooAllOrdersPageState extends State<WooAllOrdersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const SharedAppbar(title: 'All Orders'),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
-          builder: (context, state) {
-            if (state is AnalyticsLoading) {
-              return const Center(
-                child: CustomLoadingWidget(
-                  size: 50,
-                  text: 'Loading all orders...',
+      body: Column(
+        children: [
+          // Content area — only this part shows shimmer during loading
+          Expanded(
+            child: _buildContent(),
+          ),
+
+          // Pagination controls pinned at the bottom (always visible after first load)
+          if (_errorMessage == null && (_orders.isNotEmpty || _pageCache.isNotEmpty))
+            PaginationControls(
+              currentPage: _currentPage,
+              hasNextPage: _hasNextPage,
+              isLoading: _isLoading,
+              onPrevious: _goToPreviousPage,
+              onNext: _goToNextPage,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    // Show shimmer in the list area when loading
+    if (_isLoading) {
+      return _buildShimmerList();
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Colors.red.withValues(alpha: 0.7),
+              size: 80,
+            ),
+            Gap(16),
+            AppReusableText(
+              text: _errorMessage!,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.red.withValues(alpha: 0.7),
+            ),
+            Gap(8),
+            AppReusableText(
+              text: 'Please check your connection and try again',
+              fontSize: 14,
+              color: AppColors.greyB3.withValues(alpha: 0.5),
+              textAlignment: TextAlign.center,
+            ),
+            const Gap(24),
+            ElevatedButton.icon(
+              onPressed: _fetchOrders,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
                 ),
-              );
-            } else if (state is AnalyticsLoaded) {
-              if (state.allOrders.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Iconsax.shopping_cart_outline,
-                        color: AppColors.greyB3.withValues(alpha: 0.5),
-                        size: 80,
-                      ),
-                      Gap(16),
-                      AppReusableText(
-                        text: 'No orders found',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.greyB3.withValues(alpha: 0.7),
-                      ),
-                      Gap(8),
-                      AppReusableText(
-                        text:
-                            'Orders will appear here when customers place them',
-                        fontSize: 14,
-                        color: AppColors.greyB3.withValues(alpha: 0.5),
-                        textAlignment: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              }
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with order count
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardDark,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Iconsax.shopping_cart_outline,
-                          color: AppColors.greyB3,
-                          size: 24,
-                        ),
-                        Gap(12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppReusableText(
-                              text: 'Total Orders',
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                            AppReusableText(
-                              text: '${state.allOrders.length}',
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textSecondary,
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: AppReusableText(
-                            text: 'Live Data',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(16),
+    if (_orders.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Iconsax.shopping_cart_outline,
+              color: AppColors.greyB3.withValues(alpha: 0.5),
+              size: 80,
+            ),
+            Gap(16),
+            AppReusableText(
+              text: 'No orders found',
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: AppColors.greyB3.withValues(alpha: 0.7),
+            ),
+            Gap(8),
+            AppReusableText(
+              text: 'Orders will appear here when customers place them',
+              fontSize: 14,
+              color: AppColors.greyB3.withValues(alpha: 0.5),
+              textAlignment: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
 
-                  // Orders list
-                  Expanded(
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: state.allOrders.length,
-                      itemBuilder: (context, index) {
-                        final order = state.allOrders[index];
-                        return _OrderItem(order: order);
-                      },
-                    ),
-                  ),
-                ],
-              );
-            } else if (state is AnalyticsError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      itemCount: _orders.length,
+      itemBuilder: (context, index) {
+        final order = _orders[index];
+        final isHighlighted = _currentHighlightId != null &&
+            order['id']?.toString() == _currentHighlightId;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: HighlightContainer(
+            key: isHighlighted ? _highlightKey : null,
+            isHighlighted: isHighlighted,
+            child: _OrderItem(order: order),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.cardDark,
+      highlightColor: AppColors.backgroundDark.withValues(alpha: 0.5),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Colors.red.withValues(alpha: 0.7),
-                      size: 80,
-                    ),
-                    Gap(16),
-                    AppReusableText(
-                      text: 'Failed to load orders',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red.withValues(alpha: 0.7),
-                    ),
-                    Gap(8),
-                    AppReusableText(
-                      text: 'Please check your connection and try again',
-                      fontSize: 14,
-                      color: AppColors.greyB3.withValues(alpha: 0.5),
-                      textAlignment: TextAlign.center,
-                    ),
-                    const Gap(24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context.read<AnalyticsBloc>().add(
-                          const FetchAnalytics(0),
-                        );
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 14,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const Gap(6),
+                          Container(
+                            height: 12,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          height: 16,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const Gap(6),
+                        Container(
+                          height: 20,
+                          width: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+                const Gap(12),
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -219,7 +369,6 @@ class _OrderItem extends StatelessWidget {
     final lineItems = order['line_items'] as List? ?? [];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(12),

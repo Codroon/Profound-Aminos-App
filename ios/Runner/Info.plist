@@ -45,6 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Background modes for push notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<!-- Permissions for image picker -->
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to camera to take photos for product images.</string>

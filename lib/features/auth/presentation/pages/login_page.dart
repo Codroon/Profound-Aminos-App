@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/routes/routes_name.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class LoginPage extends StatelessWidget {
@@ -19,53 +18,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTabBar(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pushReplacementNamed(context, RouteNames.register);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                'Register',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.textDisabled,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              // Already on login page
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.primary, width: 1),
-                ),
-              ),
-              child: Text(
-                'Login',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

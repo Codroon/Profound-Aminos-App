@@ -8,13 +8,13 @@ import '../../../../core/theme/app_text_style.dart';
 import '../../../../widgets/custom_dialog_box.dart';
 import '../../../../widgets/shared_appbar.dart';
 import '../../../auth/presentation/pages/admin_login_screen.dart';
-import '../../../../core/services/gorgias_debug_service.dart';
 import '../../../../core/services/credential_initialization_service.dart';
 import '../../../../core/services/firestore_credentials_service.dart';
 import '../../../analytics/bloc/analytics_bloc.dart';
 import '../../../analytics/bloc/analytics_event.dart';
 import '../../../analytics/bloc/analytics_state.dart';
 import 'credential_set_up_screen.dart';
+import 'notification_settings_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -67,12 +67,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-            _buildProfileOption(
+             _buildProfileOption(
               icon: Iconsax.notification_outline,
               title: 'Notifications',
               subtitle: 'Manage your notification preferences',
-              onTap:
-                  () => _showComingSoonDialog(context, 'Notification Settings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationSettingsPage(),
+                  ),
+                );
+              },
             ),
 
             // const SizedBox(height: 25),
@@ -124,20 +130,7 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: 'App version and information',
               onTap: () => _showAboutDialog(context),
             ),
-            ValueListenableBuilder<ThemeMode>(
-              valueListenable: ThemeManager.themeModeNotifier,
-              builder: (context, themeMode, _) {
-                return _buildProfileOption(
-                  icon: themeMode == ThemeMode.dark ? Iconsax.moon_outline : Iconsax.sun_1_outline,
-                  title: 'Dark Mode',
-                  subtitle: 'Toggle app appearance',
-                  onTap: () {
-                    ThemeManager.toggleTheme();
-                    // Optional: Save preference to generic SharedPreferences
-                  },
-                );
-              },
-            ),
+            _buildThemeToggleOption(),
 
             const SizedBox(height: 30),
 
@@ -209,14 +202,16 @@ class _ProfilePageState extends State<ProfilePage> {
               String productCount = '-';
 
               if (state is AnalyticsLoaded) {
-                orderCount = state.allOrders.length.toString();
+                orderCount = state.totalOrderCount.toString();
                 // Format revenue properly
-                if (state.revenue >= 1000) {
+                if (state.revenue >= 1000000) {
+                  revenue = '\$${(state.revenue / 1000000).toStringAsFixed(2)}M';
+                } else if (state.revenue >= 1000) {
                   revenue = '\$${(state.revenue / 1000).toStringAsFixed(1)}K';
                 } else {
                   revenue = '\$${state.revenue.toStringAsFixed(0)}';
                 }
-                productCount = state.products.length.toString();
+                productCount = state.totalProductCount.toString();
               }
 
               return Row(
@@ -296,6 +291,60 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
+    );
+  }
+
+  Widget _buildThemeToggleOption() {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeManager.themeModeNotifier,
+      builder: (context, themeMode, _) {
+        final isDarkMode = themeMode == ThemeMode.dark;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: AppColors.cardDark,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: ListTile(
+            onTap: () {
+              ThemeManager.toggleTheme();
+            },
+            leading: Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                isDarkMode ? Iconsax.moon_outline : Iconsax.sun_1_outline,
+                color: AppColors.primary,
+                size: 22,
+              ),
+            ),
+            title: Text(
+              isDarkMode ? 'Dark Mode' : 'Light Mode',
+              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              isDarkMode ? 'Dark theme is enabled' : 'Light theme is enabled',
+              style: AppTextStyles.caption,
+            ),
+            trailing: Switch(
+              value: isDarkMode,
+              onChanged: (value) {
+                ThemeManager.toggleTheme();
+              },
+              activeColor: AppColors.primary,
+              activeTrackColor: AppColors.primary.withOpacity(0.3),
+              inactiveThumbColor: AppColors.textSecondary,
+              inactiveTrackColor: AppColors.textSecondary.withOpacity(0.3),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        );
+      },
     );
   }
 
@@ -416,205 +465,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _debugGorgiasCredentials(BuildContext context) async {
-    try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: AppColors.cardDark,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            content: Row(
-              children: [
-                CircularProgressIndicator(color: AppColors.primary),
-                const SizedBox(width: 20),
-                Text(
-                  'Debugging Gorgias credentials...',
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ],
-            ),
-          );
-        },
-      );
 
-      final debugInfo = await GorgiasDebugService.debugGorgiasCredentials();
 
-      // Close loading dialog
-      Navigator.of(context).pop();
-
-      // Show debug results
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: AppColors.cardDark,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
-              children: [
-                Icon(
-                  debugInfo['tokenValid'] == true
-                      ? Iconsax.tick_circle_outline
-                      : Iconsax.close_circle_outline,
-                  color:
-                      debugInfo['tokenValid'] == true
-                          ? AppColors.success
-                          : AppColors.error,
-                  size: 24,
-                ),
-                SizedBox(width: 10),
-                Text('Gorgias Debug Results', style: AppTextStyles.h4),
-              ],
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDebugRow(
-                    'Token Exists',
-                    debugInfo['tokenExists']?.toString() ?? 'false',
-                  ),
-                  _buildDebugRow(
-                    'Token Length',
-                    debugInfo['tokenLength']?.toString() ?? '0',
-                  ),
-                  _buildDebugRow(
-                    'Subdomain',
-                    debugInfo['subdomain'] ?? 'Not set',
-                  ),
-                  if (debugInfo['responseStatus'] != null)
-                    _buildDebugRow(
-                      'Response Status',
-                      debugInfo['responseStatus'].toString(),
-                    ),
-                  if (debugInfo['tokenValid'] == true)
-                    _buildDebugRow(
-                      'Account Name',
-                      debugInfo['accountName'] ?? 'Unknown',
-                    ),
-                  if (debugInfo['errorMessage'] != null)
-                    _buildDebugRow('Error', debugInfo['errorMessage']),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'OK',
-                  style: AppTextStyles.buttonMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-
-      // Show toast based on result
-      if (debugInfo['tokenValid'] == true) {
-        ToastUtils.showSuccessToast(
-          context,
-          title: 'Debug Success',
-          description: 'Gorgias credentials are valid',
-        );
-      } else {
-        ToastUtils.showErrorToast(
-          context,
-          title: 'Debug Failed',
-          description:
-              debugInfo['errorMessage'] ?? 'Gorgias credentials are invalid',
-        );
-      }
-    } catch (error) {
-      // Close loading dialog if still open
-      Navigator.of(context).pop();
-
-      ToastUtils.showErrorToast(
-        context,
-        title: 'Debug Error',
-        description: 'Failed to debug Gorgias credentials: $error',
-      );
-    }
-  }
-
-  void _refreshGorgiasCredentials(BuildContext context) async {
-    try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: AppColors.cardDark,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            content: Row(
-              children: [
-                CircularProgressIndicator(color: AppColors.primary),
-                const SizedBox(width: 20),
-                Text(
-                  'Refreshing Gorgias credentials...',
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ],
-            ),
-          );
-        },
-      );
-
-      await CredentialInitializationService.refreshGorgiasCredentials();
-
-      // Close loading dialog
-      Navigator.of(context).pop();
-
-      ToastUtils.showSuccessToast(
-        context,
-        title: 'Refresh Success',
-        description: 'Gorgias credentials have been refreshed',
-      );
-    } catch (error) {
-      // Close loading dialog if still open
-      Navigator.of(context).pop();
-
-      ToastUtils.showErrorToast(
-        context,
-        title: 'Refresh Error',
-        description: 'Failed to refresh Gorgias credentials: $error',
-      );
-    }
-  }
-
-  Widget _buildDebugRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: AppTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(child: Text(value, style: AppTextStyles.caption)),
-        ],
-      ),
-    );
-  }
 
   void _showAboutDialog(BuildContext context) {
     showDialog(
