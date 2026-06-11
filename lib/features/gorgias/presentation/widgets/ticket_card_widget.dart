@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/app_reusable_text.dart';
 import '../../models/gorgias_models.dart';
@@ -196,7 +195,7 @@ class TicketCardWidget extends StatelessWidget {
                       if (ticket.channel.isNotEmpty) ...[
                         const Spacer(),
                         Icon(
-                          Iconsax.message_outline,
+                          Icons.message_outlined,
                           size: 16,
                           color: AppColors.textSecondary,
                         ),

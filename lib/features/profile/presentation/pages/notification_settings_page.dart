@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/core/theme/app_text_style.dart';
@@ -128,7 +127,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
                     // 1. Orders Notifications Section
                     _buildSectionHeader(
-                      icon: Iconsax.bag_2_outline,
+                      icon: Icons.shopping_bag_outlined,
                       title: 'Orders Notifications',
                       subtitle: 'Triggers on WooCommerce purchases & lifecycle',
                     ),
@@ -169,7 +168,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
                     // 2. Shipment Notifications Section
                     _buildSectionHeader(
-                      icon: Iconsax.truck_fast_outline,
+                      icon: Icons.local_shipping_outlined,
                       title: 'Shipment Notifications',
                       subtitle: 'Triggers on delivery transit details',
                     ),
@@ -212,7 +211,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
                     // 3. Gorgias Notifications Section
                     _buildSectionHeader(
-                      icon: Iconsax.message_2_outline,
+                      icon: Icons.message_outlined,
                       title: 'Gorgias Helpdesk Notifications',
                       subtitle: 'Triggers on customer service tickets',
                     ),

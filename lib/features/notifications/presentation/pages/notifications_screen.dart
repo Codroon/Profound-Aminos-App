@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/core/services/push_notification_service.dart';
-import 'package:woo_management_app/features/notifications/services/notification_preference_service.dart';
 import '../../bloc/notifications_bloc.dart';
 import '../../models/app_notification.dart';
 
@@ -19,8 +17,15 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late NotificationsBloc _bloc;
   final Set<String> _selectedNotificationIds = {};
+  final ScrollController _scrollController = ScrollController();
 
   bool get _isSelectionMode => _selectedNotificationIds.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void didChangeDependencies() {
@@ -30,29 +35,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     try {
       _bloc.add(MarkAllNotificationsAsRead());
     } catch (_) {}
     super.dispose();
   }
 
-  Future<List<AppNotification>> _filterNotifications(
-    List<AppNotification> notifications,
-  ) async {
-    final List<AppNotification> filtered = [];
-    for (var notification in notifications) {
-      final type = notification.data['type']?.toString() ?? '';
-      final isEnabled =
-          await NotificationPreferenceService.isNotificationEnabled(
-            type: type,
-            title: notification.title,
-            body: notification.body,
-          );
-      if (isEnabled) {
-        filtered.add(notification);
-      }
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 300) {
+      _bloc.add(LoadMoreNotifications());
     }
-    return filtered;
+  }
+
+  Future<void> _pickDateRange() async {
+    final state = _bloc.state;
+    DateTimeRange? initial;
+    if (state is NotificationsLoaded &&
+        state.dateFrom != null &&
+        state.dateTo != null) {
+      // dateTo is stored as an exclusive upper bound (end day + 1).
+      initial = DateTimeRange(
+        start: state.dateFrom!,
+        end: state.dateTo!.subtract(const Duration(days: 1)),
+      );
+    }
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year, now.month, now.day),
+      initialDateRange: initial,
+    );
+    if (picked == null) return;
+    final from = DateTime(picked.start.year, picked.start.month, picked.start.day);
+    // Exclusive upper bound = selected end day + 1, so the whole end day is included.
+    final to = DateTime(picked.end.year, picked.end.month, picked.end.day)
+        .add(const Duration(days: 1));
+    _bloc.add(FilterNotificationsByDate(from: from, to: to));
   }
 
   Map<String, List<AppNotification>> _groupNotifications(
@@ -128,7 +151,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           if (_isSelectionMode)
             IconButton(
-              icon: Icon(Iconsax.trash_bold, color: AppColors.error),
+              icon: Icon(Icons.delete_outline, color: AppColors.error),
               tooltip: 'Delete Selected',
               onPressed: () {
                 for (var id in _selectedNotificationIds) {
@@ -138,6 +161,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   _selectedNotificationIds.clear();
                 });
               },
+            )
+          else
+            BlocBuilder<NotificationsBloc, NotificationsState>(
+              builder: (context, state) {
+                final active =
+                    state is NotificationsLoaded && state.hasDateFilter;
+                return IconButton(
+                  icon: Icon(
+                    active ? Icons.event_available : Icons.date_range_outlined,
+                    color: active ? AppColors.primary : null,
+                  ),
+                  tooltip: 'Filter by date',
+                  onPressed: _pickDateRange,
+                );
+              },
             ),
         ],
       ),
@@ -146,119 +184,209 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (state is NotificationsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (state is NotificationsError) {
+            return _buildError(isDark);
+          }
           if (state is NotificationsLoaded) {
-            return FutureBuilder<List<AppNotification>>(
-              future: _filterNotifications(state.notifications),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final filteredNotifications = snapshot.data!;
-
-                if (filteredNotifications.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Iconsax.notification_bing_outline,
-                          size: 64,
-                          color:
-                              isDark
-                                  ? const Color(0xFF98A0B8).withOpacity(0.5)
-                                  : const Color(0xFF6B7280).withOpacity(0.5),
-                        ),
-                        const SizedBox(height: 16),
-                        AppReusableText(
-                          text: 'No notifications yet',
-                          color:
-                              isDark
-                                  ? const Color(0xFF98A0B8)
-                                  : const Color(0xFF6B7280),
-                          fontSize: 16,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final grouped = _groupNotifications(filteredNotifications);
-                final List<dynamic> listItems = [];
-
-                grouped.forEach((groupTitle, groupList) {
-                  listItems.add(groupTitle);
-                  listItems.addAll(groupList);
-                });
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  itemCount: listItems.length,
-                  itemBuilder: (context, index) {
-                    final item = listItems[index];
-                    if (item is String) {
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          top: 20,
-                          bottom: 10,
-                          left: 4,
-                        ),
-                        child: AppReusableText(
-                          text: item,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      );
-                    } else {
-                      final appNotif = item as AppNotification;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _NotificationCard(
-                          notification: appNotif,
-                          isSelected: _selectedNotificationIds.contains(
-                            appNotif.id,
-                          ),
-                          onTap: () {
-                            if (_isSelectionMode) {
-                              setState(() {
-                                if (_selectedNotificationIds.contains(
-                                  appNotif.id,
-                                )) {
-                                  _selectedNotificationIds.remove(appNotif.id);
-                                } else {
-                                  _selectedNotificationIds.add(appNotif.id);
-                                }
-                              });
-                            } else {
-                              if (!appNotif.isRead) {
-                                context.read<NotificationsBloc>().add(
-                                  MarkNotificationAsRead(appNotif.id),
-                                );
-                              }
-                              PushNotificationService.instance.navigateToScreen(
-                                appNotif.data,
-                              );
-                            }
-                          },
-                          onLongPress: () {
-                            setState(() {
-                              _selectedNotificationIds.add(appNotif.id);
-                            });
-                          },
-                        ),
-                      );
-                    }
-                  },
-                );
-              },
+            return Column(
+              children: [
+                if (state.hasDateFilter) _buildFilterBanner(state, isDark),
+                Expanded(
+                  child: state.notifications.isEmpty
+                      ? _buildEmpty(isDark, state.hasDateFilter)
+                      : _buildList(state),
+                ),
+              ],
             );
           }
-
-          return const Center(child: Text('Something went wrong'));
+          return const Center(child: CircularProgressIndicator());
         },
+      ),
+    );
+  }
+
+  Widget _buildList(NotificationsLoaded state) {
+    final grouped = _groupNotifications(state.notifications);
+    final List<dynamic> listItems = [];
+    grouped.forEach((groupTitle, groupList) {
+      listItems.add(groupTitle);
+      listItems.addAll(groupList);
+    });
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async {
+        _bloc.add(LoadNotifications());
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // +1 for the trailing load-more / end indicator.
+        itemCount: listItems.length + 1,
+        itemBuilder: (context, index) {
+          if (index == listItems.length) {
+            return _buildFooter(state);
+          }
+          final item = listItems[index];
+          if (item is String) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 10, left: 4),
+              child: AppReusableText(
+                text: item,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            );
+          }
+          final appNotif = item as AppNotification;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _NotificationCard(
+              notification: appNotif,
+              isSelected: _selectedNotificationIds.contains(appNotif.id),
+              onTap: () {
+                if (_isSelectionMode) {
+                  setState(() {
+                    if (_selectedNotificationIds.contains(appNotif.id)) {
+                      _selectedNotificationIds.remove(appNotif.id);
+                    } else {
+                      _selectedNotificationIds.add(appNotif.id);
+                    }
+                  });
+                } else {
+                  if (!appNotif.isRead) {
+                    context
+                        .read<NotificationsBloc>()
+                        .add(MarkNotificationAsRead(appNotif.id));
+                  }
+                  PushNotificationService.instance
+                      .navigateToScreen(appNotif.data);
+                }
+              },
+              onLongPress: () {
+                setState(() {
+                  _selectedNotificationIds.add(appNotif.id);
+                });
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFooter(NotificationsLoaded state) {
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          ),
+        ),
+      );
+    }
+    if (!state.hasMore && state.notifications.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: AppReusableText(
+            text: 'No more notifications',
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 24);
+  }
+
+  Widget _buildFilterBanner(NotificationsLoaded state, bool isDark) {
+    final fmt = DateFormat('d MMM yyyy');
+    final from = state.dateFrom!;
+    // Display the inclusive end day (stored bound is exclusive +1 day).
+    final toInclusive = state.dateTo!.subtract(const Duration(days: 1));
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.date_range, size: 16, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: AppReusableText(
+              text: '${fmt.format(from)}  –  ${fmt.format(toInclusive)}',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _bloc.add(ClearNotificationDateFilter()),
+            child: Icon(Icons.close, size: 18, color: AppColors.primary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty(bool isDark, bool hasFilter) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.notifications_active_outlined,
+            size: 64,
+            color: isDark
+                ? const Color(0xFF98A0B8).withOpacity(0.5)
+                : const Color(0xFF6B7280).withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          AppReusableText(
+            text: hasFilter
+                ? 'No notifications in this date range'
+                : 'No notifications yet',
+            color: isDark ? const Color(0xFF98A0B8) : const Color(0xFF6B7280),
+            fontSize: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.cloud_off, size: 56, color: AppColors.error),
+          const SizedBox(height: 12),
+          AppReusableText(
+            text: 'Couldn\'t load notifications',
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: isDark ? const Color(0xFFEAF0FF) : const Color(0xFF1F2937),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => _bloc.add(LoadNotifications()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
       ),
     );
   }
@@ -284,17 +412,17 @@ class _NotificationCard extends StatelessWidget {
     final type = notification.data['type']?.toString() ?? '';
 
     // Determine icon based on type
-    IconData icon = Iconsax.notification_outline;
+    IconData icon = Icons.notifications_outlined;
     Color iconColor = AppColors.primary;
 
     if (type.startsWith('order') || type.startsWith('refund')) {
-      icon = Iconsax.shopping_bag_outline;
+      icon = Icons.shopping_bag_outlined;
       iconColor = AppColors.success;
     } else if (type.startsWith('shipment') || type.startsWith('tracking')) {
-      icon = Iconsax.truck_outline;
+      icon = Icons.local_shipping_outlined;;
       iconColor = Colors.blue;
     } else if (type.startsWith('ticket') || type.startsWith('message')) {
-      icon = Iconsax.message_outline;
+      icon = Icons.message_outlined;
       iconColor = Colors.orange;
     }
 

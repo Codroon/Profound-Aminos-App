@@ -46,3 +46,7 @@ app.*.map.json
 
 # Firebase local migration assets
 firebase_migration/
+
+# Local tooling / generated build config (not part of app source)
+CLAUDE.md
+ExportOptions.plist

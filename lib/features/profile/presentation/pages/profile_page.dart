@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/utils/motion_toast.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_style.dart';
@@ -53,7 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 15),
 
             _buildProfileOption(
-              icon: Iconsax.security_safe_outline,
+              icon: Icons.security_outlined,
               title: 'Security',
               subtitle: 'Manage your credentials.',
               onTap: () {
@@ -68,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
              _buildProfileOption(
-              icon: Iconsax.notification_outline,
+              icon: Icons.notification_important_outlined,
               title: 'Notifications',
               subtitle: 'Manage your notification preferences',
               onTap: () {
@@ -101,19 +100,19 @@ class _ProfilePageState extends State<ProfilePage> {
             _buildSectionTitle('Credentials Management'),
             const SizedBox(height: 15),
             _buildProfileOption(
-              icon: Iconsax.cloud_add_outline,
+              icon: Icons.cloud_upload_outlined,
               title: 'Upload Credentials to Cloud',
               subtitle: 'Backup your credentials to Firestore',
               onTap: () => _uploadCredentialsToFirestore(context),
             ),
             _buildProfileOption(
-              icon: Iconsax.cloud_drizzle_bold,
+              icon: Icons.cloud_download_outlined,
               title: 'Download Credentials from Cloud',
               subtitle: 'Restore your credentials from Firestore',
               onTap: () => _downloadCredentialsFromFirestore(context),
             ),
             _buildProfileOption(
-              icon: Iconsax.cloud_outline,
+              icon: Icons.cloud_outlined,
               title: 'View Cloud Credentials Info',
               subtitle: 'Check your Firestore credentials status',
               onTap: () => _viewCredentialsInfo(context),
@@ -125,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
             _buildSectionTitle('App'),
             const SizedBox(height: 15),
             _buildProfileOption(
-              icon: Iconsax.info_circle_outline,
+              icon: Icons.info_outline,
               title: 'About',
               subtitle: 'App version and information',
               onTap: () => _showAboutDialog(context),
@@ -318,7 +317,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                isDarkMode ? Iconsax.moon_outline : Iconsax.sun_1_outline,
+                isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
                 color: AppColors.primary,
                 size: 22,
               ),
@@ -368,7 +367,7 @@ class _ProfilePageState extends State<ProfilePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Iconsax.logout_outline,
+              Icons.logout_outlined,
               color: AppColors.error,
               size: 20,
             ),
@@ -437,7 +436,7 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Row(
             children: [
               Icon(
-                Iconsax.info_circle_outline,
+                Icons.info_outline,
                 color: AppColors.primary,
                 size: 24,
               ),
@@ -480,7 +479,7 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Row(
             children: [
               Icon(
-                Iconsax.info_circle_outline,
+                Icons.info_outline,
                 color: AppColors.primary,
                 size: 24,
               ),
@@ -654,7 +653,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           title: Row(
             children: [
-              Icon(Iconsax.tick_circle_outline, color: Colors.green, size: 24),
+              Icon(Icons.check_circle_outlined, color: Colors.green, size: 24),
               SizedBox(width: 10),
               Text(title, style: AppTextStyles.h4),
             ],
@@ -688,7 +687,7 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Row(
             children: [
               Icon(
-                Iconsax.info_circle_outline,
+                Icons.info_outline,
                 color: AppColors.primary,
                 size: 24,
               ),
@@ -724,7 +723,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           title: Row(
             children: [
-              Icon(Iconsax.close_circle_outline, color: Colors.red, size: 24),
+              Icon(Icons.cancel_outlined, color: Colors.red, size: 24),
               SizedBox(width: 10),
               Text(title, style: AppTextStyles.h4),
             ],

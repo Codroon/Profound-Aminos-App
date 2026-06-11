@@ -1,36 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
-import 'package:woo_management_app/widgets/pagination_controls.dart';
 import 'package:woo_management_app/widgets/highlight_container.dart';
 
 
 import '../../data/models/shipment_order.dart';
+import '../../data/models/shipment_period.dart';
 import '../../data/services/woocommerce_shipping_service.dart';
 
 class AllShipmentsPage extends StatefulWidget {
   final String? highlightShipmentId;
-  const AllShipmentsPage({super.key, this.highlightShipmentId});
+
+  /// Optional time filter carried over from the shipping dashboard. When set,
+  /// only shipments within this period are listed. Null shows all shipments.
+  final ShipmentPeriod? period;
+
+  const AllShipmentsPage({super.key, this.highlightShipmentId, this.period});
 
   @override
   State<AllShipmentsPage> createState() => _AllShipmentsPageState();
 }
 
 class _AllShipmentsPageState extends State<AllShipmentsPage> {
-  static const int _perPage = 10;
+  /// How many shipments are pulled per page as you scroll.
+  static const int _perPage = 20;
 
   final ScrollController _scrollController = ScrollController();
 
-  /// Cache of previously loaded pages: page number → list of shipments
-  final Map<int, List<ShipmentOrder>> _pageCache = {};
-
-  int _currentPage = 1;
-  List<ShipmentOrder> _shipments = [];
-  bool _isLoading = true;
-  bool _hasNextPage = true;
+  final List<ShipmentOrder> _shipments = [];
+  int _nextPage = 1;
+  bool _isLoading = true; // first-page load (shows shimmer)
+  bool _isLoadingMore = false; // appending more while scrolling
+  bool _hasMore = true;
   String? _errorMessage;
   String? _currentHighlightId;
   bool _scrolledToHighlight = false;
@@ -39,49 +42,53 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
   void initState() {
     super.initState();
     _currentHighlightId = widget.highlightShipmentId;
-    _fetchShipments();
+    _scrollController.addListener(_onScroll);
+    _loadFirstPage();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchShipments() async {
-    // If page is already cached, use cached data instantly
-    if (_pageCache.containsKey(_currentPage)) {
-      setState(() {
-        _shipments = _pageCache[_currentPage]!;
-        _hasNextPage = _shipments.length >= _perPage;
-        _isLoading = false;
-        _errorMessage = null;
-      });
-      _triggerScrollAndHighlight();
-      return;
+  void _onScroll() {
+    // Load the next page when the user nears the bottom.
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 400 &&
+        _hasMore &&
+        !_isLoadingMore &&
+        !_isLoading) {
+      _loadMore();
     }
+  }
 
+  /// (Re)load from the first page — used on initial load and pull-to-refresh.
+  Future<void> _loadFirstPage() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _shipments.clear();
+      _nextPage = 1;
+      _hasMore = true;
     });
 
     try {
-      final shipments = await WooCommerceShippingService.fetchShipments(
-        page: _currentPage,
+      final batch = await WooCommerceShippingService.fetchShipments(
+        page: 1,
         perPage: _perPage,
+        after: widget.period?.after,
+        before: widget.period?.before,
       );
-
-      if (mounted) {
-        // Cache the fetched page
-        _pageCache[_currentPage] = shipments;
-        setState(() {
-          _shipments = shipments;
-          _hasNextPage = shipments.length >= _perPage;
-          _isLoading = false;
-        });
-        _triggerScrollAndHighlight();
-      }
+      if (!mounted) return;
+      setState(() {
+        _shipments.addAll(batch);
+        _nextPage = 2;
+        _hasMore = batch.length >= _perPage;
+        _isLoading = false;
+      });
+      _triggerScrollAndHighlight();
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -92,17 +99,31 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
     }
   }
 
-  void _goToNextPage() {
-    if (_hasNextPage && !_isLoading) {
-      setState(() => _currentPage++);
-      _fetchShipments();
-    }
-  }
-
-  void _goToPreviousPage() {
-    if (_currentPage > 1 && !_isLoading) {
-      setState(() => _currentPage--);
-      _fetchShipments(); // Will hit cache instantly
+  /// Append the next page. A failure here just stops further loading; the
+  /// already-loaded shipments stay on screen.
+  Future<void> _loadMore() async {
+    setState(() => _isLoadingMore = true);
+    try {
+      final batch = await WooCommerceShippingService.fetchShipments(
+        page: _nextPage,
+        perPage: _perPage,
+        after: widget.period?.after,
+        before: widget.period?.before,
+      );
+      if (!mounted) return;
+      setState(() {
+        _shipments.addAll(batch);
+        _nextPage += 1;
+        _hasMore = batch.length >= _perPage;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _hasMore = false; // stop hammering a failing endpoint
+        });
+      }
     }
   }
 
@@ -149,14 +170,16 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
                 children: [
                   IconButton(
                     icon: Icon(
-                      Iconsax.arrow_left_outline,
+                      Icons.arrow_back_ios,
                       color: AppColors.textPrimary,
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Gap(8),
                   AppReusableText(
-                    text: 'All Shipments',
+                    text: widget.period == null
+                        ? 'All Shipments'
+                        : 'All Shipments • ${widget.period!.label}',
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -164,14 +187,10 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
                   const Spacer(),
                   IconButton(
                     icon: Icon(
-                      Iconsax.refresh_outline,
+                      Icons.refresh,
                       color: AppColors.primary,
                     ),
-                    onPressed: () {
-                      // Clear cache and re-fetch current page
-                      _pageCache.clear();
-                      _fetchShipments();
-                    },
+                    onPressed: _loadFirstPage,
                   ),
                 ],
               ),
@@ -181,16 +200,6 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
             Expanded(
               child: _buildContent(),
             ),
-
-            // Pagination controls pinned at the bottom (always visible after first load)
-            if (_errorMessage == null && (_shipments.isNotEmpty || _pageCache.isNotEmpty))
-              PaginationControls(
-                currentPage: _currentPage,
-                hasNextPage: _hasNextPage,
-                isLoading: _isLoading,
-                onPrevious: _goToPreviousPage,
-                onNext: _goToNextPage,
-              ),
           ],
         ),
       ),
@@ -221,7 +230,7 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
             ),
             const Gap(8),
             ElevatedButton(
-              onPressed: _fetchShipments,
+              onPressed: _loadFirstPage,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
               ),
@@ -238,7 +247,7 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Iconsax.box_outline,
+              Icons.inventory_2_outlined,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
               size: 64,
             ),
@@ -255,17 +264,18 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        _pageCache.remove(_currentPage);
-        await _fetchShipments();
-      },
+      onRefresh: _loadFirstPage,
       color: AppColors.primary,
       backgroundColor: AppColors.cardDark,
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: _shipments.length,
+        // One extra row for the bottom loader / end-of-list spacer.
+        itemCount: _shipments.length + 1,
         itemBuilder: (context, index) {
+          if (index >= _shipments.length) {
+            return _buildBottomLoader();
+          }
           final shipment = _shipments[index];
           final isHighlighted = _currentHighlightId != null &&
               shipment.id.toString() == _currentHighlightId;
@@ -280,6 +290,28 @@ class _AllShipmentsPageState extends State<AllShipmentsPage> {
         },
       ),
     );
+  }
+
+  Widget _buildBottomLoader() {
+    if (_isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_hasMore && _shipments.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: AppReusableText(
+            text: 'No more shipments',
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 24);
   }
 
   Widget _buildShimmerList() {
@@ -545,7 +577,7 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Customer Section
-                  _buildSectionTitleWithIcon(Iconsax.user_outline, 'CUSTOMER'),
+                  _buildSectionTitleWithIcon(Icons.person_outline, 'CUSTOMER'),
                   const Gap(12),
                   _buildInfoCard(
                     child: Column(
@@ -574,7 +606,7 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                   const Gap(20),
 
                   // Products Section
-                  _buildSectionTitleWithIcon(Iconsax.box_outline, 'PRODUCTS'),
+                  _buildSectionTitleWithIcon(Icons.inventory_2_outlined, 'PRODUCTS'),
                   const Gap(12),
                   _buildInfoCard(
                     child: Column(
@@ -591,7 +623,7 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  Iconsax.box_outline,
+                                  Icons.inventory_2_outlined,
                                   color: AppColors.textSecondary,
                                   size: 20,
                                 ),
@@ -630,7 +662,7 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                   const Gap(20),
 
                   // Totals Section
-                  _buildSectionTitleWithIcon(Iconsax.receipt_outline, 'TOTALS'),
+                  _buildSectionTitleWithIcon(Icons.receipt_long, 'TOTALS'),
                   const Gap(12),
                   _buildInfoCard(
                     child: Column(
@@ -658,46 +690,14 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                   const Gap(20),
 
                   // Shipment Info Section
-                  _buildSectionTitleWithIcon(Iconsax.truck_fast_outline, 'SHIPMENT INFO'),
+                  _buildSectionTitleWithIcon(Icons.local_shipping, 'SHIPMENT INFO'),
                   const Gap(12),
                   _buildInfoCard(
-                    child: Column(
-                      children: [
-                        _buildShipmentInfoRow('Carrier', shipment.carrier ?? '-'),
-                        const Gap(12),
-                        _buildShipmentInfoRow('Tracking Number', shipment.trackingNumber ?? '-', isLink: true),
-                        const Gap(12),
-                        _buildShipmentInfoRow('Date Shipped', shipment.dateShipped != null ? _formatDate(shipment.dateShipped!) : '-'),
-                      ],
+                    child: _buildShipmentInfoRow(
+                      'Carrier',
+                      shipment.carrier ?? shipment.service ?? '-',
                     ),
                   ),
-                  const Gap(24),
-
-                  // Track Button
-                  if (shipment.hasTracking)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Open carrier tracking website
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Track with ${shipment.carrier ?? 'Carrier'}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
                   const Gap(32),
                 ],
               ),
@@ -824,7 +824,7 @@ class _ShipmentDetailBottomSheet extends StatelessWidget {
                   color: AppColors.primary,
                 ),
                 const Gap(4),
-                Icon(Iconsax.export_3_outline, color: AppColors.primary, size: 14),
+                Icon(Icons.open_in_new, color: AppColors.primary, size: 14),
               ],
             )
           : AppReusableText(

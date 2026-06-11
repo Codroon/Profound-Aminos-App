@@ -3,6 +3,19 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 import '../../../../core/services/api_credential_service.dart';
 import '../../../../core/services/crediential_storage_service.dart';
+import '../../../../core/services/woocommerce_service.dart';
+import '../../../../core/utils/store_time.dart';
+import 'package:woo_management_app/features/shipping/data/services/woocommerce_shipping_service.dart';
+
+/// Invalidate all cached credentials/data so freshly saved or cleared
+/// credentials take effect immediately instead of waiting for a TTL.
+void _invalidateCredentialCaches() {
+  WooCommerceService.clearCredentialCache();
+  WooCommerceShippingService.clearCredentialCache();
+  WooCommerceShippingService.clearStatsCache();
+  // Drop the cached store offset so a different store's timezone is re-fetched.
+  StoreTime.reset();
+}
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CredentialStorageService _storageService;
@@ -23,6 +36,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _storageService.saveCredentials(event.credentials);
+      _invalidateCredentialCaches();
       print('[AuthBloc] Credentials saved successfully.');
       emit(AuthSuccess());
     } catch (e) {
@@ -78,6 +92,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _storageService.clearAll();
+      _invalidateCredentialCaches();
       print('[AuthBloc] Credentials cleared.');
       emit(AuthSuccess());
     } catch (e) {

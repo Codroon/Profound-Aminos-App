@@ -13,12 +13,13 @@ import 'package:woo_management_app/features/analytics/repository/analytics_repos
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
 import 'package:woo_management_app/features/gorgias/repository/gorgias_repository.dart';
 import 'package:woo_management_app/features/products/bloc/product_bloc.dart';
+import 'package:woo_management_app/features/products/bloc/product_performance/product_performance_bloc.dart';
 import 'package:woo_management_app/features/products/repository/product_repository.dart';
 import 'package:woo_management_app/features/shipping/bloc/shipping_bloc.dart';
 import 'package:woo_management_app/features/word_press/bloc/wordpress_bloc.dart';
 import 'package:woo_management_app/features/word_press/repository/word_press_repo.dart';
 import 'package:woo_management_app/features/notifications/bloc/notifications_bloc.dart';
-import 'package:woo_management_app/features/notifications/services/notification_storage_service.dart';
+import 'package:woo_management_app/features/notifications/repository/notification_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -41,7 +42,7 @@ Future<void> init() async {
   // Services
   sl.registerLazySingleton<WordpressService>(() => WordpressService());
   sl.registerLazySingleton<GorgiasService>(() => GorgiasService(sl()));
-  sl.registerLazySingleton<NotificationStorageService>(() => NotificationStorageService());
+  sl.registerLazySingleton<NotificationRepository>(() => NotificationRepository());
 
   // Repositories
   sl.registerLazySingleton<AnalyticsRepository>(
@@ -69,6 +70,7 @@ Future<void> init() async {
   // BLoCs
   sl.registerFactory(() => AnalyticsBloc(repository: sl()));
   sl.registerFactory(() => ProductBloc(repository: sl()));
+  sl.registerFactory(() => ProductPerformanceBloc(repository: sl()));
   sl.registerFactory(() => WordPressBloc(repository: sl()));
   sl.registerFactory(
     () => GorgiasBloc(repository: sl(), connectivity: Connectivity()),

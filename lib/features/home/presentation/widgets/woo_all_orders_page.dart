@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
@@ -215,7 +214,7 @@ class _WooAllOrdersPageState extends State<WooAllOrdersPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Iconsax.shopping_cart_outline,
+              Icons.shopping_cart_outlined,
               color: AppColors.greyB3.withValues(alpha: 0.5),
               size: 80,
             ),
@@ -576,7 +575,7 @@ class _OrderItem extends StatelessWidget {
       case 'failed':
         return Icons.error_outline;
       default:
-        return Iconsax.shopping_cart_outline;
+        return Icons.shopping_cart_outlined;
     }
   }
 

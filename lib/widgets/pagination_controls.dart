@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
@@ -44,7 +43,7 @@ class PaginationControls extends StatelessWidget {
           children: [
             // Previous button
             _PaginationButton(
-              icon: Iconsax.arrow_left_2_outline,
+              icon: Icons.arrow_back_ios,
               onTap: canGoPrevious ? onPrevious : null,
               isEnabled: canGoPrevious,
             ),
@@ -66,7 +65,7 @@ class PaginationControls extends StatelessWidget {
             const SizedBox(width: 24),
             // Next button
             _PaginationButton(
-              icon: Iconsax.arrow_right_3_outline,
+              icon: Icons.arrow_forward_ios,
               onTap: canGoNext ? onNext : null,
               isEnabled: canGoNext,
             ),

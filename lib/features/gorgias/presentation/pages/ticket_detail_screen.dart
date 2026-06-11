@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_state.dart';
@@ -350,7 +349,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 );
                               },
                               icon: const Icon(
-                                Iconsax.message_bold,
+                                Icons.message,
                                 color: Colors.white,
                                 size: 24,
                               ),

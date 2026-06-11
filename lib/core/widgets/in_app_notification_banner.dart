@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
 class InAppNotificationBanner extends StatefulWidget {
@@ -116,16 +115,16 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
 
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    IconData iconData = Iconsax.shopping_bag_bold;
+    IconData iconData = Icons.shopping_bag_outlined;
     Color iconBgColor = const Color(0xFF6B4EFF).withValues(alpha: 0.15); // Deep premium purple background
     Color iconColor = const Color(0xFF9E8BFF);
 
     if (isSupport) {
-      iconData = Iconsax.message_outline;
+      iconData = Icons.message;
       iconBgColor = const Color(0xFF00C853).withValues(alpha: 0.15); // Premium green
       iconColor = const Color(0xFF69F0AE);
     } else if (isShipping) {
-      iconData = Iconsax.truck_fast_outline;
+      iconData = Icons.local_shipping;
       iconBgColor = const Color(0xFF00B0FF).withValues(alpha: 0.15); // Premium blue
       iconColor = const Color(0xFF40C4FF);
     }

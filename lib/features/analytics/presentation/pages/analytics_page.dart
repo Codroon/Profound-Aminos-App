@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:woo_management_app/features/analytics/models/revenue_period.dart';
 import 'package:woo_management_app/features/analytics/presentation/widgets/revenue_chart_card.dart';
-import 'package:woo_management_app/features/analytics/presentation/widgets/revenue_orders_card.dart';
 import 'package:woo_management_app/features/analytics/presentation/widgets/revenue_performance_shimmer.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
 import '../../bloc/analytics_bloc.dart';
@@ -10,14 +9,18 @@ import '../../bloc/analytics_event.dart';
 import '../../bloc/analytics_state.dart';
 
 class AnalyticsPage extends StatefulWidget {
-  const AnalyticsPage({super.key});
+  /// Period the chart opens on. The dashboard Revenue card opens it on
+  /// [RevenuePeriod.today]; otherwise it defaults to this week.
+  final RevenuePeriod initialPeriod;
+
+  const AnalyticsPage({super.key, this.initialPeriod = RevenuePeriod.thisWeek});
 
   @override
   State<AnalyticsPage> createState() => _AnalyticsPageState();
 }
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
-  RevenuePeriod _period = RevenuePeriod.thisWeek;
+  late RevenuePeriod _period = widget.initialPeriod;
 
   @override
   void initState() {
@@ -25,7 +28,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     // FIX Bug 3: Only dispatch FetchAnalytics here.
     // FetchRevenueReport is now triggered automatically at the end of
     // _onFetchAnalytics in the bloc, so we don't race against the state.
-    context.read<AnalyticsBloc>().add(const FetchAnalytics(0));
+    context
+        .read<AnalyticsBloc>()
+        .add(FetchAnalytics(0, initialPeriod: widget.initialPeriod));
   }
 
   void _onPeriodChanged(RevenuePeriod p) {
@@ -103,14 +108,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     RevenueChartCard(
                       period: displayPeriod,
                       revenue: revenue,
-                      totalOrders: state.totalOrderCount,
                       chartSpots: chartSpots,
                       xLabels: xLabels,
                       onPeriodChanged: _onPeriodChanged,
                       isLoadingRevenue: isLoadingRevenue,
                     ),
-                    const SizedBox(height: 16),
-                    const RevenueOrdersCard(),
                     const SizedBox(height: 24),
                   ],
                 ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
@@ -45,87 +44,85 @@ class CurrentOrdersWidget extends StatelessWidget {
             ),
             const Gap(24),
             BlocBuilder<AnalyticsBloc, AnalyticsState>(
-              builder: (context, state) {
-                // Determine which orders to show - prefer live data, fallback to cache
-                List<dynamic> ordersToShow = [];
-                bool isLoading = false;
-                
-                if (state is AnalyticsLoaded) {
-                  ordersToShow = state.allOrders.take(3).toList();
-                } else if (cachedOrders.isNotEmpty) {
-                  // Use cached orders while loading
-                  ordersToShow = cachedOrders;
-                  isLoading = state is AnalyticsLoading;
-                } else if (state is AnalyticsLoading) {
-                  // Only show loading if no cache at all
-                  isLoading = true;
-                }
-                
-                // Show cached orders immediately - no loading spinner
-                if (ordersToShow.isNotEmpty) {
-                  return Column(
-                    children: ordersToShow.map((order) {
-                      return _OrderItem(order: order);
-                    }).toList(),
-                  );
-                }
-                
-                // Show shimmer loading effect instead of circular indicator
-                if (isLoading) {
-                  return _buildOrdersShimmer();
-                }
-                
-                // Empty state
-                if (state is AnalyticsLoaded && state.allOrders.isEmpty) {
-                  return Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Iconsax.shopping_cart_outline,
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
-                          size: 40,
-                        ),
-                        const Gap(8),
-                        AppReusableText(
-                          text: 'No orders found',
-                          fontSize: 14,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                
-                // Error state
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.red, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.priority_high,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                      ),
-                      const Gap(16),
-                      const AppReusableText(
-                        text: 'Failed to load orders',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red,
-                      ),
-                      const Gap(8),
-                    ],
-                  ),
-                );
-              },
+  builder: (context, state) {
+
+    // Show cached data immediately if available
+    if (cachedOrders.isNotEmpty &&
+        (state is AnalyticsInitial ||
+         state is AnalyticsLoading)) {
+      return Column(
+        children: cachedOrders.map((order) {
+          return _OrderItem(order: order);
+        }).toList(),
+      );
+    }
+
+    // Initial state -> shimmer
+    if (state is AnalyticsInitial) {
+      return _buildOrdersShimmer();
+    }
+
+    // Loading state -> shimmer
+    if (state is AnalyticsLoading) {
+      return _buildOrdersShimmer();
+    }
+
+    // Loaded state
+    if (state is AnalyticsLoaded) {
+
+      final orders = state.allOrders.take(3).toList();
+
+      if (orders.isEmpty) {
+        return Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.shopping_cart_outlined,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
+                size: 40,
+              ),
+              const Gap(8),
+              AppReusableText(
+                text: 'No orders found',
+                fontSize: 14,
+                color: AppColors.textSecondary.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return Column(
+        children: orders.map((order) {
+          return _OrderItem(order: order);
+        }).toList(),
+      );
+    }
+
+    // Error state
+    if (state is AnalyticsError) {
+      return Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.inbox_outlined,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              size: 40,
             ),
+            const Gap(8),
+            AppReusableText(
+              text: 'No data available',
+              fontSize: 14,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  },
+),
           ],
         ),
       ),
@@ -373,7 +370,7 @@ class _OrderItem extends StatelessWidget {
       case 'failed':
         return Icons.error_outline;
       default:
-        return Iconsax.shopping_cart_outline;
+        return Icons.shopping_cart_outlined;
     }
   }
 

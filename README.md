@@ -1,92 +1,45 @@
-# WooCommerce Management App
+# Profound Aminos – Store Management App
 
-A comprehensive Flutter application for managing WooCommerce stores, WordPress content, and customer support through Gorgias integration.
+A Flutter app for managing the Profound Aminos WooCommerce store, with WordPress, Gorgias (support) and ReachShip (shipping) integrations.
 
-## Features
+This document summarizes the work done in this round of changes.
 
-### 🛍️ WooCommerce Management
-- **Analytics Dashboard**: Real-time sales data, order statistics, and revenue tracking
-- **Order Management**: View all orders with detailed information and status tracking
-- **Product Management**: Create, edit, and manage products with image upload support
-- **Sales Reports**: Comprehensive sales analytics and reporting
+## Overview of what we improved
 
-### 📝 WordPress Integration
-- **Post Management**: Create, edit, and publish WordPress posts
-- **Media Upload**: Upload images directly to WordPress media library
-- **Content Management**: Full CRUD operations for WordPress content
+We started by reworking the UI across the whole app to give it a cleaner, more consistent look, and then built out the feature set screen by screen.
 
-### 🎫 Customer Support (Gorgias)
-- **Ticket Management**: View and manage customer support tickets
-- **Message Handling**: Send and receive messages through Gorgias API
-- **Support Analytics**: Track support metrics and performance
+### 1. Dashboard
 
-### 👤 User Profile
-- **Account Management**: User profile and settings
-- **Business Features**: Business-related configurations
-- **App Settings**: Application preferences and configurations
+The dashboard is the home of the app and now surfaces the most important numbers at a glance:
 
-## Technical Stack
+- **Total products, total orders and revenue**, each with its own chart, period filters (today / this week / this month / this year / all time) and the supporting detail behind every figure.
+- A **shipping overview** giving a quick read on the current shipping situation.
+- The **3 most recent orders**, so the latest activity is visible without leaving the dashboard.
 
-- **Framework**: Flutter
-- **State Management**: BLoC Pattern
-- **HTTP Client**: Dio
-- **Local Storage**: Flutter Secure Storage
-- **UI Components**: Custom widgets with consistent theming
-- **Architecture**: Clean Architecture with Repository Pattern
+### 2. Shipping
 
-## Project Structure
+The second tab is a dedicated shipping screen. It lists the full shipping details for every shipment, with pagination so the complete history can be browsed without loading everything at once.
 
-```
-lib/
-├── core/
-│   ├── constants/
-│   ├── di/
-│   ├── error/
-│   ├── network/
-│   ├── routes/
-│   ├── services/
-│   ├── storage/
-│   ├── theme/
-│   └── utils/
-├── features/
-│   ├── analytics/
-│   ├── auth/
-│   ├── gorgias/
-│   ├── home/
-│   ├── notifications/
-│   ├── products/
-│   ├── profile/
-│   └── word_press/
-└── widgets/
+### 3. Support (Gorgias)
+
+The Gorgias tab already existed, so here we focused on improving the UI to match the rest of the app.
+
+### 4. Notifications
+
+We added a fourth tab for notifications and implemented the full notification flow. Notifications cover **orders, Gorgias tickets and shipping**. Each event is stored in Firebase and the app fetches the history back from there, so notifications are kept across devices rather than only living on one phone.
+
+### 5. Settings
+
+The settings screen got a UI refresh and two additions:
+
+- A new **notification preferences** screen where you can choose exactly which kinds of notifications you want to receive.
+- **Light and dark mode** for the entire app, toggled from a button on the settings page.
+
+## Getting started
+
+```bash
+flutter pub get      # install dependencies
+flutter run          # run on a connected device or emulator
 ```
 
-## Security Note
-
-For security reasons, the following files containing sensitive API configurations and service implementations have been excluded from this public repository:
-
-- `lib/core/services/wordpress_service.dart`
-- `lib/core/services/gorgias_service.dart`
-- `lib/features/word_press/presentation/pages/`
-- `lib/features/products/presentation/pages/create_product_page.dart`
-- `lib/features/products/presentation/pages/edit_product_page.dart`
-
-These files contain API endpoints, authentication methods, and business logic that should remain private.
-
-## Getting Started
-
-1. Clone the repository
-2. Run `flutter pub get` to install dependencies
-3. Configure your API credentials (not included in this repository)
-4. Run `flutter run` to start the application
-
-## Development
-
-This project follows Flutter best practices and clean architecture principles. Each feature is modularized with its own BLoC for state management and repository for data handling.
-
-## Contributing
-
-Please ensure that any contributions maintain the existing code structure and do not include sensitive configuration files.
-
-## License
-
-This project is proprietary and confidential.
+Store credentials (WooCommerce, WordPress, Gorgias, ReachShip) are entered at runtime from the settings screen and stored securely on the device — nothing is hardcoded.

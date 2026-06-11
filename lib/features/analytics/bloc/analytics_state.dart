@@ -32,13 +32,18 @@ class AnalyticsLoaded extends AnalyticsState {
   final List<dynamic> allOrders;
   final int totalOrderCount;
   final int thisMonthOrderCount;
+  // Total products in the catalog (shown on the profile stats row).
   final int totalProductCount;
+  // Number of items sold today (store-local day), shown on the dashboard
+  // "Products Sold" card.
+  final int itemsSoldToday;
   final int tabIndex;
   final Map<int, AnalyticsTabData> tabDataCache;
 
   // Revenue report fields
   final SalesReportModel? revenueReport;
   final List<FlSpot>? reportChartSpots;
+  final List<FlSpot>? reportOrderSpots;
   final List<String>? reportXLabels;
   final RevenuePeriod? selectedPeriod;
 
@@ -57,10 +62,12 @@ class AnalyticsLoaded extends AnalyticsState {
     required this.totalOrderCount,
     required this.thisMonthOrderCount,
     required this.totalProductCount,
+    required this.itemsSoldToday,
     required this.tabIndex,
     required this.tabDataCache,
     this.revenueReport,
     this.reportChartSpots,
+    this.reportOrderSpots,
     this.reportXLabels,
     this.selectedPeriod,
     this.isRevenueLoading = false,
@@ -78,11 +85,13 @@ class AnalyticsLoaded extends AnalyticsState {
     int? totalOrderCount,
     int? thisMonthOrderCount,
     int? totalProductCount,
+    int? itemsSoldToday,
     int? tabIndex,
     Map<int, AnalyticsTabData>? tabDataCache,
     // Nullable<T> wrappers allow explicitly passing null to clear these fields
     Nullable<SalesReportModel?>? revenueReport,
     Nullable<List<FlSpot>?>? reportChartSpots,
+    Nullable<List<FlSpot>?>? reportOrderSpots,
     Nullable<List<String>?>? reportXLabels,
     Nullable<RevenuePeriod?>? selectedPeriod,
     bool? isRevenueLoading,
@@ -99,6 +108,7 @@ class AnalyticsLoaded extends AnalyticsState {
       totalOrderCount: totalOrderCount ?? this.totalOrderCount,
       thisMonthOrderCount: thisMonthOrderCount ?? this.thisMonthOrderCount,
       totalProductCount: totalProductCount ?? this.totalProductCount,
+      itemsSoldToday: itemsSoldToday ?? this.itemsSoldToday,
       tabIndex: tabIndex ?? this.tabIndex,
       tabDataCache: tabDataCache ?? this.tabDataCache,
       revenueReport:
@@ -107,6 +117,10 @@ class AnalyticsLoaded extends AnalyticsState {
           reportChartSpots != null
               ? reportChartSpots.value
               : this.reportChartSpots,
+      reportOrderSpots:
+          reportOrderSpots != null
+              ? reportOrderSpots.value
+              : this.reportOrderSpots,
       reportXLabels:
           reportXLabels != null ? reportXLabels.value : this.reportXLabels,
       selectedPeriod:
@@ -127,11 +141,13 @@ class AnalyticsLoaded extends AnalyticsState {
     totalOrderCount,
     thisMonthOrderCount,
     totalProductCount,
+    itemsSoldToday,
     tabIndex,
     totalOrders,
     tabDataCache,
     revenueReport,
     reportChartSpots,
+    reportOrderSpots,
     reportXLabels,
     selectedPeriod,
     isRevenueLoading,

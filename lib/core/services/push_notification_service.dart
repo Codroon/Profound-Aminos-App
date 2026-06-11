@@ -10,42 +10,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:woo_management_app/core/routes/app_routes.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/core/widgets/in_app_notification_banner.dart';
-import 'package:woo_management_app/features/notifications/models/app_notification.dart';
-import 'package:woo_management_app/features/notifications/services/notification_storage_service.dart';
 import 'package:woo_management_app/features/notifications/bloc/notifications_bloc.dart';
 import 'package:woo_management_app/features/notifications/services/notification_preference_service.dart';
 import 'package:woo_management_app/core/di/injection_container.dart' as di;
 
-Future<void> _saveNotification(RemoteMessage message) async {
-  final notification = message.notification;
-  if (notification == null) return;
-  final appNotification = AppNotification(
-    id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-    title: notification.title ?? '',
-    body: notification.body ?? '',
-    data: message.data,
-    timestamp: message.sentTime ?? DateTime.now(),
-    isRead: false,
-  );
-  await NotificationStorageService().saveNotification(appNotification);
-}
-
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // History is persisted server-side by the Cloud Function (the single source
+  // of truth), so there's nothing to store on-device here. The OS renders the
+  // notification; the in-app list refreshes from Firestore when opened.
   debugPrint('[PushNotification] Background message: ${message.messageId}');
-  final type = message.data['type']?.toString() ?? '';
-  final title = message.notification?.title ?? '';
-  final body = message.notification?.body ?? '';
-  final enabled = await NotificationPreferenceService.isNotificationEnabled(
-    type: type,
-    title: title,
-    body: body,
-  );
-  if (!enabled) {
-    debugPrint('[PushNotification] Push notification is disabled by user settings. Ignoring.');
-    return;
-  }
-  await _saveNotification(message);
 }
 
 class PushNotificationService {
@@ -286,7 +260,8 @@ class PushNotificationService {
       return;
     }
     
-    await _saveNotification(message);
+    // The Cloud Function already wrote this notification to Firestore; refresh
+    // the in-app list from there so it shows immediately.
     try {
       di.sl<NotificationsBloc>().add(LoadNotifications());
     } catch (_) {}

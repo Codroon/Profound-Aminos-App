@@ -109,11 +109,67 @@ class ShipmentOrder {
     return 'pending';
   }
 
+  /// Serialize for local caching (SharedPreferences). Mirrors [fromCacheJson].
+  Map<String, dynamic> toCacheJson() {
+    return {
+      'id': id,
+      'status': status,
+      'date_created': dateCreated.toIso8601String(),
+      'date_shipped': dateShipped?.toIso8601String(),
+      'customer_name': customerName,
+      'to_address': toAddress.toJson(),
+      'from_address': fromAddress?.toJson(),
+      'items': items.map((i) => i.toCacheJson()).toList(),
+      'tracking_number': trackingNumber,
+      'carrier': carrier,
+      'service': service,
+      'total': total,
+      'shipping_cost': shippingCost,
+      'label_url': labelUrl,
+    };
+  }
+
+  /// Rebuild from cached JSON produced by [toCacheJson].
+  factory ShipmentOrder.fromCacheJson(Map<String, dynamic> json) {
+    return ShipmentOrder(
+      id: json['id'] as int,
+      status: json['status'] as String? ?? 'pending',
+      dateCreated: DateTime.parse(json['date_created'] as String),
+      dateShipped: json['date_shipped'] != null
+          ? DateTime.tryParse(json['date_shipped'] as String)
+          : null,
+      customerName: json['customer_name'] as String? ?? '',
+      toAddress: Address.fromJson(
+          (json['to_address'] as Map?)?.cast<String, dynamic>() ?? {}),
+      fromAddress: json['from_address'] != null
+          ? Address.fromJson(
+              (json['from_address'] as Map).cast<String, dynamic>())
+          : null,
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((i) => ShipmentItem.fromCacheJson(
+              (i as Map).cast<String, dynamic>()))
+          .toList(),
+      trackingNumber: json['tracking_number'] as String?,
+      carrier: json['carrier'] as String?,
+      service: json['service'] as String?,
+      total: (json['total'] as num?)?.toDouble() ?? 0,
+      shippingCost: (json['shipping_cost'] as num?)?.toDouble() ?? 0,
+      labelUrl: json['label_url'] as String?,
+    );
+  }
+
   String get displayId => '#${id.toString().padLeft(4, '0')}';
 
   int get totalItems => items.fold<int>(0, (sum, item) => sum + item.quantity);
 
   bool get hasTracking => trackingNumber?.isNotEmpty ?? false;
+
+  /// True when there is at least a shipping method to display.
+  bool get hasShipmentInfo =>
+      (service?.isNotEmpty ?? false) ||
+      (carrier?.isNotEmpty ?? false) ||
+      (trackingNumber?.isNotEmpty ?? false) ||
+      dateShipped != null;
 }
 
 class ShipmentItem {
@@ -138,6 +194,24 @@ class ShipmentItem {
       quantity: json['quantity'] as int? ?? 1,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
       weight: 0.5,
+    );
+  }
+
+  Map<String, dynamic> toCacheJson() {
+    return {
+      'id': id,
+      'name': name,
+      'quantity': quantity,
+      'price': price,
+    };
+  }
+
+  factory ShipmentItem.fromCacheJson(Map<String, dynamic> json) {
+    return ShipmentItem(
+      id: json['id'] as int? ?? 0,
+      name: json['name']?.toString() ?? 'Unknown Product',
+      quantity: json['quantity'] as int? ?? 1,
+      price: (json['price'] as num?)?.toDouble() ?? 0,
     );
   }
 }

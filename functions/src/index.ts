@@ -5,6 +5,25 @@ admin.initializeApp();
 
 async function sendToAdmins(payload: { title: string, body: string, data: any, prefKey?: string }) {
     const db = admin.firestore();
+    try {
+        const RETENTION_DAYS = 365; 
+        const expireAt = admin.firestore.Timestamp.fromMillis(
+            Date.now() + RETENTION_DAYS * 24 * 60 * 60 * 1000
+        );
+        await db.collection("notifications").add({
+            title: payload.title,
+            body: payload.body,
+            type: (payload.data && payload.data.type) || "",
+            prefKey: payload.prefKey || "",
+            data: payload.data || {},
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            expireAt: expireAt,
+        });
+    } catch (err) {
+        console.error("Failed to persist notification history:", err);
+        // Don't block the push if history write fails.
+    }
+
     const devicesRef = db.collection("admin_devices");
     const snapshot = await devicesRef.get();
 
@@ -54,12 +73,10 @@ async function sendToAdmins(payload: { title: string, body: string, data: any, p
     await Promise.all(notifications);
 }
 
-// 1. WooCommerce Webhook
 export const wcWebhook = functions.https.onRequest(async (req, res) => {
     try {
         const event = req.headers["x-wc-webhook-topic"]?.toString() || "order.updated";
         const body = req.body;
-
         const orderId = body.id || "N/A";
         const firstName = body.billing?.first_name || "";
         const lastName = body.billing?.last_name || "";
@@ -67,12 +84,9 @@ export const wcWebhook = functions.https.onRequest(async (req, res) => {
         const total = body.total || "0.00";
         const currency = body.currency || "USD";
         const status = body.status || "updated";
-
         let title = "Order Update";
         let message = `Order #${orderId} updated.`;
         let channelId = "orders_channel";
-
-        // Check for shipment tracking in meta_data (WooCommerce Shipment Tracking plugin)
         let hasTracking = false;
         let trackingNumber = "";
         let trackingProvider = "";

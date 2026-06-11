@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/features/gorgias/presentation/pages/gorgias_dashboard.dart';
 import 'package:woo_management_app/features/shipping/bloc/shipping_bloc.dart';
@@ -61,28 +60,28 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                icon: Iconsax.grid_1_bold,
+                icon: Icons.dashboard_outlined,
                 label: 'Dashboard',
                 index: 0,
               ),
               _buildNavItem(
-                icon: Iconsax.truck_outline,
+                icon: Icons.local_shipping_outlined,
                 label: 'Shipping',
                 index: 1,
               ),
               _buildNavItem(
-                icon: Iconsax.support_outline,
+                icon: Icons.support_agent_outlined,
                 label: 'Support',
                 index: 2,
               ),
               _buildNavItem(
-                icon: Iconsax.notification_outline,
+                icon: Icons.notifications_none_outlined,
                 label: 'Alerts',
                 index: 3,
                 isNotification: true,
               ),
               _buildNavItem(
-                icon: Iconsax.setting_2_outline,
+                icon: Icons.settings_outlined,
                 label: 'Settings',
                 index: 4,
               ),

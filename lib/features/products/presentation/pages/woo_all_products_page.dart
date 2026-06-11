@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
@@ -104,7 +103,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
         actions: [
           IconButton(
             onPressed: () => _loadProducts(refresh: true),
-            icon: Icon(Iconsax.refresh_outline),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -354,7 +353,7 @@ class _WooAllProductsPageState extends State<WooAllProductsPage> {
         },
         backgroundColor: AppColors.primary,
         tooltip: 'Add Product',
-        child: const Icon(BoxIcons.bx_plus, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

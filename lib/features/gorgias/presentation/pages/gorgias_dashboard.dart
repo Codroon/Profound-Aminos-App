@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_bloc.dart';
 import 'package:woo_management_app/features/gorgias/bloc/gorgias_event.dart';
@@ -33,9 +32,18 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
   int _cachedPage = 1;
   bool _cachedHasMore = false;
 
+  // Deep-link highlight (from a tapped notification): scroll the matching
+  // ticket into view and flash it, then clear. Mirrors the orders/shipments
+  // pages.
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _highlightKey = GlobalKey();
+  String? _currentHighlightId;
+  bool _scrolledToHighlight = false;
+
   @override
   void initState() {
     super.initState();
+    _currentHighlightId = widget.highlightTicketId;
   }
 
   @override
@@ -57,10 +65,35 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     if (!_gorgiasBloc.isClosed) {
       _gorgiasBloc.add(const StopRealtimeUpdates());
     }
     super.dispose();
+  }
+
+  /// Once tickets are on screen, scroll the highlighted one into view and clear
+  /// the highlight after a few seconds. Runs at most once per deep link.
+  void _triggerScrollAndHighlight() {
+    if (_currentHighlightId == null || _scrolledToHighlight) return;
+    _scrolledToHighlight = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (_highlightKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _highlightKey.currentContext!,
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeInOutCubic,
+            alignment: 0.35,
+          );
+          Future.delayed(const Duration(seconds: 3), () {
+            if (mounted) {
+              setState(() => _currentHighlightId = null);
+            }
+          });
+        }
+      });
+    });
   }
 
   void _onFilterChanged(TicketFilter newFilter) {
@@ -226,7 +259,7 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Iconsax.ticket_outline, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.local_activity_outlined, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               'No tickets found',
@@ -248,7 +281,11 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
       );
     }
 
+    // Schedule the scroll-to-highlight once the matching ticket is rendered.
+    _triggerScrollAndHighlight();
+
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       itemCount: tickets.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -271,9 +308,10 @@ class _GorgiasDashboardState extends State<GorgiasDashboard> {
 
         final ticket = tickets[index];
         final isHighlighted =
-            widget.highlightTicketId != null &&
-            ticket.id.toString() == widget.highlightTicketId;
+            _currentHighlightId != null &&
+            ticket.id.toString() == _currentHighlightId;
         return HighlightContainer(
+          key: isHighlighted ? _highlightKey : null,
           isHighlighted: isHighlighted,
           child: TicketCardWidget(
             ticket: ticket,
@@ -311,11 +349,7 @@ class _TicketFilterBar extends StatelessWidget {
       {'label': 'Closed', 'value': 'closed'},
     ];
 
-    final channelFilters = [
-      {'label': 'Email', 'value': 'email'},
-      {'label': 'Chat', 'value': 'chat'},
-      {'label': 'SMS', 'value': 'sms'},
-    ];
+    final channelFilters = [];
 
     final allFilters = [...statusFilters, ...channelFilters];
 

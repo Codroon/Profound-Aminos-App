@@ -74,8 +74,12 @@ class DashboardCacheService {
 
 /// Data model for cached dashboard data
 class DashboardCacheData {
-  final int totalProductCount;
+  // Items sold today (store-local day) — shown on the "Products Sold" card.
+  final int itemsSoldToday;
   final double revenue;
+  // Net revenue for the current day (shown on the dashboard Revenue card).
+  // Nullable so caches written before this field was added still deserialize.
+  final double? todayRevenue;
   final int thisMonthOrderCount;
   final int totalOrderCount;
   final String currentMonthLabel;
@@ -92,8 +96,9 @@ class DashboardCacheData {
   final int? shippingTotal;
 
   DashboardCacheData({
-    required this.totalProductCount,
+    required this.itemsSoldToday,
     required this.revenue,
+    this.todayRevenue,
     required this.thisMonthOrderCount,
     required this.totalOrderCount,
     required this.currentMonthLabel,
@@ -110,8 +115,9 @@ class DashboardCacheData {
 
   Map<String, dynamic> toJson() {
     return {
-      'totalProductCount': totalProductCount,
+      'itemsSoldToday': itemsSoldToday,
       'revenue': revenue,
+      'todayRevenue': todayRevenue,
       'thisMonthOrderCount': thisMonthOrderCount,
       'totalOrderCount': totalOrderCount,
       'currentMonthLabel': currentMonthLabel,
@@ -129,8 +135,11 @@ class DashboardCacheData {
 
   factory DashboardCacheData.fromJson(Map<String, dynamic> json) {
     return DashboardCacheData(
-      totalProductCount: json['totalProductCount'] as int,
+      // Fall back to 0 for caches written before this field existed (or that
+      // stored the old totalProductCount key).
+      itemsSoldToday: (json['itemsSoldToday'] as num?)?.toInt() ?? 0,
       revenue: json['revenue'] as double,
+      todayRevenue: (json['todayRevenue'] as num?)?.toDouble(),
       thisMonthOrderCount: json['thisMonthOrderCount'] as int,
       totalOrderCount: json['totalOrderCount'] as int,
       currentMonthLabel: json['currentMonthLabel'] as String,

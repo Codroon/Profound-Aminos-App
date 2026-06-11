@@ -2,9 +2,11 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/routes/routes_name.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
+import 'package:woo_management_app/core/utils/app_logger.dart';
+import 'package:woo_management_app/features/shipping/data/models/shipment_period.dart';
+import 'package:woo_management_app/features/shipping/data/services/woocommerce_shipping_service.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
 import '../widgets/dashboard_shimmer.dart';
@@ -17,6 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../analytics/bloc/analytics_bloc.dart';
 import '../../../analytics/bloc/analytics_event.dart';
 import '../../../analytics/bloc/analytics_state.dart';
+import '../../../analytics/models/revenue_period.dart';
 import '../../../gorgias/bloc/gorgias_bloc.dart';
 import '../../../gorgias/bloc/gorgias_event.dart';
 import '../../../gorgias/bloc/gorgias_state.dart';
@@ -33,16 +36,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Cached data that can be shown instantly
   DashboardCacheData? _cachedData;
   bool _hasCache = false;
   bool _isFirstLoad = true;
-  
-  // Track data loading states
+
   AnalyticsLoaded? _analyticsData;
   bool _analyticsLoaded = false;
-  bool _gorgiasLoaded = false;
-  bool _shippingLoaded = false;
+
+  // Live shipping stats — updated directly from the bloc, independent of cache
+  int? _shippingPending;
+  int? _shippingInTransit;
+  int? _shippingDelivered;
+  int? _shippingTotal;
 
   @override
   void initState() {
@@ -50,218 +55,243 @@ class _HomePageState extends State<HomePage> {
     _loadCachedData();
   }
 
-  /// Load cached data and determine if we should show shimmer or cached data
   Future<void> _loadCachedData() async {
     final cache = await DashboardCacheService.loadCache();
-    
+
     if (mounted) {
       setState(() {
         _cachedData = cache;
         _hasCache = cache != null;
         _isFirstLoad = cache == null;
+        // Seed live shipping from cache so the widget shows immediately
+        _shippingPending = cache?.shippingPending;
+        _shippingInTransit = cache?.shippingInTransit;
+        _shippingDelivered = cache?.shippingDelivered;
+        _shippingTotal = cache?.shippingTotal;
       });
 
-      // Always fetch fresh data in background
-      developer.log(
-        _hasCache 
-          ? 'Cache loaded, triggering background refresh' 
-          : 'No cache found, fetching fresh data',
-        name: 'Dashboard'
-      );
-      
+      if (_hasCache) {
+        final age = DateTime.now().difference(cache!.cachedAt);
+        AppLog.cache('Dashboard',
+            'Served from cache instantly (age: ${_formatAge(age)}) → refreshing in background');
+      } else {
+        AppLog.net('Dashboard', 'No cache → fetching fresh data (showing shimmer)');
+      }
+
       if (!mounted) return;
-      
-      // Fetch analytics, gorgias, and shipping data
       context.read<AnalyticsBloc>().add(const FetchAnalytics(0));
       context.read<GorgiasBloc>().add(const FetchTicketStats());
-      context.read<ShippingBloc>().add(const FetchShipmentStats());
+      context.read<ShippingBloc>().add(FetchShipmentStats(
+            after: ShipmentPeriod.today.after,
+            before: ShipmentPeriod.today.before,
+          ));
     }
   }
+  Future<void> _onRefresh() async {
+    AppLog.refresh('Dashboard', 'Pull-to-refresh triggered → forcing fresh fetch');
+    WooCommerceShippingService.clearStatsCache();
+    if (!mounted) return;
+    final analyticsBloc = context.read<AnalyticsBloc>();
+    analyticsBloc.add(const FetchAnalytics(0));
+    context.read<GorgiasBloc>().add(const FetchTicketStats());
+    context.read<ShippingBloc>().add(const FetchShipmentStats());
+    await analyticsBloc.stream
+        .firstWhere((s) => s is AnalyticsLoaded || s is AnalyticsError)
+        .timeout(const Duration(seconds: 35), onTimeout: () => analyticsBloc.state);
+  }
 
-  /// Check if all data is ready to show
+  String _formatAge(Duration age) {
+    if (age.inMinutes < 1) return '${age.inSeconds}s';
+    if (age.inHours < 1) return '${age.inMinutes}m';
+    if (age.inDays < 1) return '${age.inHours}h';
+    return '${age.inDays}d';
+  }
+
+  /// Show content as soon as analytics loads — gorgias/shipping render inline
   bool get _isAllDataReady {
-    if (_isFirstLoad && !_hasCache) {
-      // First time with no cache - wait for analytics, gorgias, and shipping
-      return _analyticsLoaded && _gorgiasLoaded && _shippingLoaded;
-    }
-    // Have cache - show immediately
+    if (_isFirstLoad && !_hasCache) return _analyticsLoaded;
     return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = ThemeManager.isDarkMode;
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: SafeArea(
         child: MultiBlocListener(
           listeners: [
-            // Analytics Listener
             BlocListener<AnalyticsBloc, AnalyticsState>(
-              listenWhen: (previous, current) {
-                return current is AnalyticsLoaded || current is AnalyticsError;
-              },
+              listenWhen: (previous, current) =>
+                  current is AnalyticsLoaded || current is AnalyticsError,
               listener: (context, state) {
-                if (state is AnalyticsLoaded) {
-                  _handleAnalyticsUpdate(state);
-                }
+                if (state is AnalyticsLoaded) _handleAnalyticsUpdate(state);
               },
             ),
-            // Gorgias Listener  
             BlocListener<GorgiasBloc, GorgiasState>(
-              listenWhen: (previous, current) {
-                return current is TicketStatsLoaded || current is TicketStatsError;
-              },
+              listenWhen: (previous, current) =>
+                  current is TicketStatsLoaded || current is TicketStatsError,
               listener: (context, state) {
-                if (state is TicketStatsLoaded) {
-                  _handleGorgiasUpdate(state);
-                } else if (state is TicketStatsError) {
-                  // Even on error, mark as "loaded" to not block UI
-                  setState(() => _gorgiasLoaded = true);
-                }
+                if (state is TicketStatsLoaded) _handleGorgiasUpdate(state);
               },
             ),
-            // Shipping Listener
             BlocListener<ShippingBloc, ShippingState>(
-              listenWhen: (previous, current) {
-                return current is ShippingStatsLoaded || current is ShipmentsLoaded || current is ShippingError;
-              },
+              listenWhen: (previous, current) =>
+                  current is ShippingStatsLoaded ||
+                  current is ShipmentsLoaded ||
+                  current is ShippingError,
               listener: (context, state) {
                 if (state is ShippingStatsLoaded) {
                   _handleShippingUpdate(state.stats);
                 } else if (state is ShipmentsLoaded) {
                   _handleShippingUpdate(state.stats);
-                } else if (state is ShippingError) {
-                  // Even on error, mark as "loaded" to not block UI
-                  setState(() => _shippingLoaded = true);
                 }
               },
             ),
           ],
           child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
             buildWhen: (previous, current) {
-              // Only rebuild on meaningful state changes
-              if (current is AnalyticsLoaded) return true;
-              if (current is AnalyticsError && !_hasCache) return true;
-              if ((current is AnalyticsInitial || current is AnalyticsLoading) && !_hasCache) return true;
+              if (current is AnalyticsLoaded) { return true; }
+              if (current is AnalyticsError && !_hasCache) { return true; }
+              if ((current is AnalyticsInitial || current is AnalyticsLoading) &&
+                  !_hasCache) { return true; }
               return false;
             },
             builder: (context, analyticsState) {
-              // Show shimmer until ALL data is ready (on first load with no cache)
-              if (!_isAllDataReady) {
-                return const DashboardShimmer();
+              if (!_hasCache &&
+                  !_analyticsLoaded &&
+                  analyticsState is AnalyticsError) {
+                return _buildErrorState();
               }
+              if (!_isAllDataReady) { return const DashboardShimmer(); }
 
-              // Get analytics values
-              String productCount = '0';
+              String productsSoldCount = '0';
               String revenueCount = '\$0.00';
               String monthOrderCount = '0';
               String currentMonthLabel = '';
               List<dynamic> orders = [];
 
               if (analyticsState is AnalyticsLoaded) {
-                final now = DateTime.now();
-                const monthNames = [
-                  'January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December',
-                ];
-                currentMonthLabel = '${monthNames[now.month - 1]} ${now.year}';
-                productCount = analyticsState.totalProductCount.toString();
-                revenueCount = _formatCompactCurrency(analyticsState.revenue);
+                currentMonthLabel = 'Today';
+                productsSoldCount = analyticsState.itemsSoldToday.toString();
+                // netSales is the current-day net revenue (tabIndex 0 window).
+                revenueCount = _formatCompactCurrency(analyticsState.netSales);
                 monthOrderCount = analyticsState.thisMonthOrderCount.toString();
                 orders = analyticsState.orders.take(3).toList();
               } else if (_hasCache && _cachedData != null) {
-                productCount = _cachedData!.totalProductCount.toString();
-                revenueCount = _formatCompactCurrency(_cachedData!.revenue);
+                productsSoldCount = _cachedData!.itemsSoldToday.toString();
+                revenueCount = _formatCompactCurrency(
+                    _cachedData!.todayRevenue ?? _cachedData!.revenue);
                 monthOrderCount = _cachedData!.thisMonthOrderCount.toString();
                 currentMonthLabel = _cachedData!.currentMonthLabel;
                 orders = _cachedData!.recentOrders.take(3).toList();
               }
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16,
-                ),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const UserAvatarWidget(
-                      text: 'Profound Aminos',
-                      userImage: 'assets/images/profound_icon.png',
-                    ),
-                    const Gap(32),
-                    AppReusableText(
-                      text: 'Dashboard',
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                    const Gap(12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: StatCard(
-                            onTap: () {
-                              Navigator.pushNamed(context, RouteNames.wooProduct);
-                            },
-                            icon: Iconsax.tag_outline,
-                            title: 'Products',
-                            value: productCount,
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                        const Gap(12),
-                        Expanded(
-                          child: StatCard(
-                            onTap: () {
-                              Navigator.pushNamed(context, RouteNames.analytics);
-                            },
-                            icon: Iconsax.dollar_circle_bold,
-                            title: 'Revenue',
-                            value: revenueCount,
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(12),
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+              return RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: AppColors.primary,
+                backgroundColor: isDark
+                    ? const Color(0xFF1E1E2E)
+                    : Colors.white,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 16,
+                  ),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // const UserAvatarWidget(
+                      //   text: 'Profound Aminos',
+                      //   userImage: 'assets/images/profound_icon.png',
+                      // ),
+                      // const Gap(32),
+                      AppReusableText(
+                        text: 'Dashboard',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                      const Gap(12),
+                      Row(
                         children: [
                           Expanded(
                             child: StatCard(
-                              icon: Iconsax.message_outline,
-                              title: 'WooCommerce \nOrders',
-                              value: monthOrderCount,
-                              subtitle: currentMonthLabel.isEmpty ? null : currentMonthLabel,
+                              onTap: () {
+                                Navigator.pushNamed(context, RouteNames.wooProduct);
+                              },
+                              icon: Icons.tag_outlined,
+                              title: 'Products Sold',
+                              value: productsSoldCount,
+                              subtitle: 'Today',
                               subtitleColor: const Color(0xFF4CAF50),
                               padding: const EdgeInsets.all(16),
                             ),
                           ),
                           const Gap(12),
                           Expanded(
-                            child: GorgiasCard(
-                              cachedOpenTickets: _cachedData?.gorgiasOpenTickets,
-                              cachedClosedTickets: _cachedData?.gorgiasClosedTickets,
-                              cachedTotalTickets: _cachedData?.gorgiasTotalTickets,
+                            child: StatCard(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.analytics,
+                                  arguments: RevenuePeriod.today,
+                                );
+                              },
+                              icon: Icons.attach_money,
+                              title: 'Revenue',
+                              value: revenueCount,
+                              padding: const EdgeInsets.all(16),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const Gap(24),
-                    CurrentOrdersWidget(cachedOrders: orders),
-                    const Gap(24),
-                    ShippingOverviewWidget(
-                      pending: _cachedData?.shippingPending,
-                      inTransit: _cachedData?.shippingInTransit,
-                      delivered: _cachedData?.shippingDelivered,
-                      total: _cachedData?.shippingTotal,
-                    ),
-                    const Gap(24),
-                  ],
+                      const Gap(12),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: StatCard(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                      context, RouteNames.ordersDetails);
+                                },
+                                icon: Icons.message_outlined,
+                                title: 'WooCommerce \nOrders',
+                                value: monthOrderCount,
+                                subtitle: currentMonthLabel.isEmpty
+                                    ? null
+                                    : currentMonthLabel,
+                                subtitleColor: const Color(0xFF4CAF50),
+                                padding: const EdgeInsets.all(16),
+                              ),
+                            ),
+                            const Gap(12),
+                            Expanded(
+                              child: GorgiasCard(
+                                cachedOpenTickets: _cachedData?.gorgiasOpenTickets,
+                                cachedClosedTickets: _cachedData?.gorgiasClosedTickets,
+                                cachedTotalTickets: _cachedData?.gorgiasTotalTickets,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(24),
+                      // Pass live shipping stats — always up-to-date regardless of cache timing
+                      ShippingOverviewWidget(
+                        pending: _shippingPending,
+                        inTransit: _shippingInTransit,
+                        delivered: _shippingDelivered,
+                        total: _shippingTotal,
+                      ),
+                      const Gap(24),
+                      CurrentOrdersWidget(cachedOrders: orders),
+                      const Gap(24),
+                    ],
+                  ),
                 ),
               );
             },
@@ -271,112 +301,95 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Handle analytics data update
   void _handleAnalyticsUpdate(AnalyticsLoaded state) {
     setState(() {
       _analyticsData = state;
       _analyticsLoaded = true;
     });
-
-    // Update cache with analytics data
     _updateCache();
-
-    // Log
-    if (_isFirstLoad) {
-      developer.log('Analytics data loaded!', name: 'Dashboard');
-    } else {
-      developer.log('data updated!', name: 'Dashboard');
-    }
-
-    // Mark first load complete
-    if (_isFirstLoad && mounted) {
-      setState(() => _isFirstLoad = false);
-    }
+    developer.log(
+      _isFirstLoad ? 'Analytics data loaded!' : 'Analytics updated!',
+      name: 'Dashboard',
+    );
+    if (_isFirstLoad && mounted) setState(() => _isFirstLoad = false);
   }
 
-  /// Handle gorgias data update
   void _handleGorgiasUpdate(TicketStatsLoaded state) {
-    setState(() => _gorgiasLoaded = true);
-
-    // Update cache with gorgias data
     final currentCache = _cachedData;
-    if (currentCache != null) {
-      final updatedCache = DashboardCacheData(
-        totalProductCount: currentCache.totalProductCount,
-        revenue: currentCache.revenue,
-        thisMonthOrderCount: currentCache.thisMonthOrderCount,
-        totalOrderCount: currentCache.totalOrderCount,
-        currentMonthLabel: currentCache.currentMonthLabel,
-        recentOrders: currentCache.recentOrders,
-        cachedAt: DateTime.now(),
-        gorgiasOpenTickets: state.stats.openTickets,
-        gorgiasClosedTickets: state.stats.closedTickets,
-        gorgiasTotalTickets: state.stats.totalTickets,
-        shippingPending: currentCache.shippingPending,
-        shippingInTransit: currentCache.shippingInTransit,
-        shippingDelivered: currentCache.shippingDelivered,
-        shippingTotal: currentCache.shippingTotal,
-      );
-      DashboardCacheService.saveCache(updatedCache);
-      setState(() => _cachedData = updatedCache);
-    }
+    if (currentCache == null) return;
+    final updatedCache = DashboardCacheData(
+      itemsSoldToday: currentCache.itemsSoldToday,
+      revenue: currentCache.revenue,
+      todayRevenue: currentCache.todayRevenue,
+      thisMonthOrderCount: currentCache.thisMonthOrderCount,
+      totalOrderCount: currentCache.totalOrderCount,
+      currentMonthLabel: currentCache.currentMonthLabel,
+      recentOrders: currentCache.recentOrders,
+      cachedAt: DateTime.now(),
+      gorgiasOpenTickets: state.stats.openTickets,
+      gorgiasClosedTickets: state.stats.closedTickets,
+      gorgiasTotalTickets: state.stats.totalTickets,
+      shippingPending: currentCache.shippingPending,
+      shippingInTransit: currentCache.shippingInTransit,
+      shippingDelivered: currentCache.shippingDelivered,
+      shippingTotal: currentCache.shippingTotal,
+    );
+    DashboardCacheService.saveCache(updatedCache);
+    setState(() => _cachedData = updatedCache);
   }
 
-  /// Handle shipping data update
   void _handleShippingUpdate(dynamic stats) {
-    setState(() => _shippingLoaded = true);
+    // Always update live state — independent of whether cache exists yet
+    setState(() {
+      _shippingPending = stats.pending;
+      _shippingInTransit = stats.inTransit;
+      _shippingDelivered = stats.delivered;
+      _shippingTotal = stats.total;
+    });
 
-    // Update cache with shipping data
+    // Also persist to disk cache if analytics cache exists
     final currentCache = _cachedData;
-    if (currentCache != null) {
-      final updatedCache = DashboardCacheData(
-        totalProductCount: currentCache.totalProductCount,
-        revenue: currentCache.revenue,
-        thisMonthOrderCount: currentCache.thisMonthOrderCount,
-        totalOrderCount: currentCache.totalOrderCount,
-        currentMonthLabel: currentCache.currentMonthLabel,
-        recentOrders: currentCache.recentOrders,
-        cachedAt: DateTime.now(),
-        gorgiasOpenTickets: currentCache.gorgiasOpenTickets,
-        gorgiasClosedTickets: currentCache.gorgiasClosedTickets,
-        gorgiasTotalTickets: currentCache.gorgiasTotalTickets,
-        shippingPending: stats.pending,
-        shippingInTransit: stats.inTransit,
-        shippingDelivered: stats.delivered,
-        shippingTotal: stats.total,
-      );
-      DashboardCacheService.saveCache(updatedCache);
-      setState(() => _cachedData = updatedCache);
-    }
+    if (currentCache == null) return;
+    final updatedCache = DashboardCacheData(
+      itemsSoldToday: currentCache.itemsSoldToday,
+      revenue: currentCache.revenue,
+      todayRevenue: currentCache.todayRevenue,
+      thisMonthOrderCount: currentCache.thisMonthOrderCount,
+      totalOrderCount: currentCache.totalOrderCount,
+      currentMonthLabel: currentCache.currentMonthLabel,
+      recentOrders: currentCache.recentOrders,
+      cachedAt: DateTime.now(),
+      gorgiasOpenTickets: currentCache.gorgiasOpenTickets,
+      gorgiasClosedTickets: currentCache.gorgiasClosedTickets,
+      gorgiasTotalTickets: currentCache.gorgiasTotalTickets,
+      shippingPending: stats.pending,
+      shippingInTransit: stats.inTransit,
+      shippingDelivered: stats.delivered,
+      shippingTotal: stats.total,
+    );
+    DashboardCacheService.saveCache(updatedCache);
+    setState(() => _cachedData = updatedCache);
   }
 
-  /// Update cache with current data
   void _updateCache() {
     if (_analyticsData == null) return;
-    
-    final now = DateTime.now();
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    
     final cacheData = DashboardCacheData(
-      totalProductCount: _analyticsData!.totalProductCount,
+      itemsSoldToday: _analyticsData!.itemsSoldToday,
       revenue: _analyticsData!.revenue,
+      todayRevenue: _analyticsData!.netSales,
       thisMonthOrderCount: _analyticsData!.thisMonthOrderCount,
       totalOrderCount: _analyticsData!.totalOrderCount,
-      currentMonthLabel: '${monthNames[now.month - 1]} ${now.year}',
+      currentMonthLabel: 'Today',
       recentOrders: _analyticsData!.orders.take(5).toList(),
       cachedAt: DateTime.now(),
       gorgiasOpenTickets: _cachedData?.gorgiasOpenTickets,
       gorgiasClosedTickets: _cachedData?.gorgiasClosedTickets,
       gorgiasTotalTickets: _cachedData?.gorgiasTotalTickets,
-      shippingPending: _cachedData?.shippingPending,
-      shippingInTransit: _cachedData?.shippingInTransit,
-      shippingDelivered: _cachedData?.shippingDelivered,
-      shippingTotal: _cachedData?.shippingTotal,
+      shippingPending: _shippingPending,
+      shippingInTransit: _shippingInTransit,
+      shippingDelivered: _shippingDelivered,
+      shippingTotal: _shippingTotal,
     );
-
     DashboardCacheService.saveCache(cacheData);
     setState(() {
       _cachedData = cacheData;
@@ -384,13 +397,66 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _buildErrorState() {
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: AppColors.primary,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off, color: AppColors.error, size: 48),
+                    const Gap(16),
+                    AppReusableText(
+                      text: 'Couldn\'t load dashboard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                    const Gap(8),
+                    AppReusableText(
+                      text: 'Check your connection and try again.',
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    const Gap(24),
+                    ElevatedButton(
+                      onPressed: () {
+                        AppLog.refresh('Dashboard', 'Retry tapped → re-fetching');
+                        context
+                            .read<AnalyticsBloc>()
+                            .add(const FetchAnalytics(0));
+                        context.read<GorgiasBloc>().add(const FetchTicketStats());
+                        context
+                            .read<ShippingBloc>()
+                            .add(const FetchShipmentStats());
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatCompactCurrency(double value) {
-    if (value >= 1000000) {
-      return '\$${(value / 1000000).toStringAsFixed(2)}M';
-    } else if (value >= 1000) {
-      return '\$${(value / 1000).toStringAsFixed(1)}K';
-    } else {
-      return '\$${value.toStringAsFixed(0)}';
-    }
+    if (value >= 1000000) return '\$${(value / 1000000).toStringAsFixed(2)}M';
+    if (value >= 1000) return '\$${(value / 1000).toStringAsFixed(1)}K';
+    return '\$${value.toStringAsFixed(0)}';
   }
 }

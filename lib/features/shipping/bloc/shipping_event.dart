@@ -16,21 +16,35 @@ class FetchShipments extends ShippingEvent {
   final int page;
   final int perPage;
 
+  /// When true, skips the disk cache and forces a fresh network fetch
+  /// (used by pull-to-refresh). Current data stays visible meanwhile.
+  final bool forceRefresh;
+
   const FetchShipments({
     this.status,
     this.after,
     this.before,
     this.page = 1,
     this.perPage = 100,
+    this.forceRefresh = false,
   });
 
   @override
-  List<Object?> get props => [status, after, before, page, perPage];
+  List<Object?> get props => [status, after, before, page, perPage, forceRefresh];
 }
 
-/// Fetch shipment statistics for dashboard
+/// Fetch shipment statistics for dashboard.
+///
+/// Optionally scoped to a date range via [after]/[before]; when both are null
+/// the stats cover all time.
 class FetchShipmentStats extends ShippingEvent {
-  const FetchShipmentStats();
+  final DateTime? after;
+  final DateTime? before;
+
+  const FetchShipmentStats({this.after, this.before});
+
+  @override
+  List<Object?> get props => [after, before];
 }
 
 /// Refresh shipments data

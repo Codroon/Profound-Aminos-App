@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
@@ -17,6 +18,9 @@ class ShippingOverviewWidget extends StatelessWidget {
     this.total,
   });
 
+  bool get _isLoading =>
+      pending == null && inTransit == null && delivered == null && total == null;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -29,48 +33,49 @@ class ShippingOverviewWidget extends StatelessWidget {
           color: AppColors.textPrimary,
         ),
         const Gap(16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildShippingStat(
-                label: 'Pending',
-                value: (pending ?? 0).toString(),
-                color: Colors.orange,
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: _buildShippingStat(
-                label: 'In Transit',
-                value: (inTransit ?? 0).toString(),
-                color: Colors.deepPurpleAccent,
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: _buildShippingStat(
-                label: 'Fulfilled',
-                value: (delivered ?? 0).toString(),
-                color: Colors.green,
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: _buildShippingStat(
-                label: 'Total',
-                value: (total ?? 0).toString(),
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
+        _isLoading ? _buildShimmer() : _buildStats(),
       ],
     );
   }
 
-  Widget _buildShippingStat({
+  Widget _buildStats() {
+    return Row(
+      children: [
+        Expanded(child: _buildStat(label: 'Pending', value: pending!, color: Colors.orange)),
+        const Gap(12),
+        // Expanded(child: _buildStat(label: 'In Transit', value: inTransit!, color: Colors.deepPurpleAccent)),
+        // const Gap(12),
+        Expanded(child: _buildStat(label: 'Fulfilled', value: delivered!, color: Colors.green)),
+        const Gap(12),
+        Expanded(child: _buildStat(label: 'Total', value: total!, color: AppColors.textPrimary)),
+      ],
+    );
+  }
+
+  Widget _buildShimmer() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.cardDark,
+      highlightColor: const Color(0xFF2D3142),
+      child: Row(
+        children: List.generate(3, (i) => [
+          Expanded(
+            child: Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          if (i < 2) const Gap(12),
+        ]).expand((w) => w).toList(),
+      ),
+    );
+  }
+
+  Widget _buildStat({
     required String label,
-    required String value,
+    required int value,
     required Color color,
   }) {
     return Container(
@@ -82,7 +87,7 @@ class ShippingOverviewWidget extends StatelessWidget {
       child: Column(
         children: [
           AppReusableText(
-            text: value,
+            text: value.toString(),
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: color,

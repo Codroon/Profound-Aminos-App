@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/shared_appbar.dart';
 
@@ -38,7 +37,7 @@ class Gorgias extends StatelessWidget {
                       right: 14,
                       bottom: 12,
                     ),
-                    icon: Iconsax.tag_outline,
+                    icon: Icons.tag_outlined,
                     title: 'Products',
                     value: '12',
                     valueFontSize: 26,
@@ -58,7 +57,7 @@ class Gorgias extends StatelessWidget {
                       right: 10,
                       bottom: 12,
                     ),
-                    icon: Iconsax.dollar_circle_bold,
+                    icon: Icons.attach_money,
                     title: 'Recent \nOrder',
                     value: '5',
                     valueFontSize: 26,

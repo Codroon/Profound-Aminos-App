@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Shared admin credentials, read after login. Managed manually/in console.
+    match /credentials/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Per-user saved integration credentials.
+    match /user_credentials/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Registered device push tokens + per-device preferences.
+    // The Cloud Function reads these via the Admin SDK (which bypasses rules).
+    match /admin_devices/{deviceId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Shared notification history. Written ONLY by the Cloud Function
+    // (Admin SDK bypasses these rules). Clients may read and delete.
+    match /notifications/{docId} {
+      allow read: if isSignedIn();
+      allow delete: if isSignedIn();
+      allow create, update: if false;
+    }
+
+    // Per-user "last read" watermark.
+    match /notification_read_state/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+  }
+}

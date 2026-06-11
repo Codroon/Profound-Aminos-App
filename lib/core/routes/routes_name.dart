@@ -10,6 +10,7 @@ class RouteNames {
   static const String home = '/home';
   static const String bottomNav = '/bottomNav';
   static const String analytics = '/analytics';
+  static const String ordersDetails = '/orders-details';
   static const String gorgiasDashboard = '/gorgias-dashboard';
   static const String profile = '/profile';
 

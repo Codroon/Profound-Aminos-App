@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
+import 'package:woo_management_app/core/utils/store_time.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 import 'package:woo_management_app/widgets/animated_dots.dart';
 import '../../bloc/analytics_bloc.dart';
 
-enum RevenueOrdersPeriod { today, lastWeek, lastMonth }
+enum RevenueOrdersPeriod { today, lastWeek, lastMonth, lastYear }
 
 class RevenueOrdersCard extends StatefulWidget {
   const RevenueOrdersCard({super.key});
@@ -20,45 +20,62 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
   RevenueOrdersPeriod _period = RevenueOrdersPeriod.today;
 
   final Map<RevenueOrdersPeriod, List<dynamic>> _ordersMap = {
-    RevenueOrdersPeriod.today: [],
-    RevenueOrdersPeriod.lastWeek: [],
-    RevenueOrdersPeriod.lastMonth: [],
+    for (final p in RevenueOrdersPeriod.values) p: <dynamic>[],
   };
   final Map<RevenueOrdersPeriod, int> _pageMap = {
-    RevenueOrdersPeriod.today: 1,
-    RevenueOrdersPeriod.lastWeek: 1,
-    RevenueOrdersPeriod.lastMonth: 1,
+    for (final p in RevenueOrdersPeriod.values) p: 1,
   };
   final Map<RevenueOrdersPeriod, bool> _loadingMap = {
-    RevenueOrdersPeriod.today: false,
-    RevenueOrdersPeriod.lastWeek: false,
-    RevenueOrdersPeriod.lastMonth: false,
+    for (final p in RevenueOrdersPeriod.values) p: false,
   };
   final Map<RevenueOrdersPeriod, bool> _hasMoreMap = {
-    RevenueOrdersPeriod.today: true,
-    RevenueOrdersPeriod.lastWeek: true,
-    RevenueOrdersPeriod.lastMonth: true,
+    for (final p in RevenueOrdersPeriod.values) p: true,
   };
 
   @override
   void initState() {
     super.initState();
-    // Fetch initial data for all periods to show counts
+    // Load the default period (today) up front; the other periods fetch the
+    // first time their chip is tapped.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (var p in RevenueOrdersPeriod.values) {
-        _fetchOrders(p);
-      }
+      _refresh(_period);
     });
+  }
+
+  /// Switch to [p] and reload its latest orders from scratch (resets the
+  /// pagination cursor). Called on every chip tap so the list always reflects
+  /// fresh data for the selected filter.
+  void _selectPeriod(RevenueOrdersPeriod p) {
+    if (_period == p) return;
+    setState(() => _period = p);
+    _refresh(p);
+  }
+
+  /// Clear the cached page for [p] and fetch the first page again.
+  Future<void> _refresh(RevenueOrdersPeriod p) async {
+    setState(() {
+      _ordersMap[p]!.clear();
+      _pageMap[p] = 1;
+      _hasMoreMap[p] = true;
+      _loadingMap[p] = false;
+    });
+    await _fetchOrders(p);
   }
 
   // ── Date Range ────────────────────────────────────────────────────────────
 
   (String after, String before) _getRange(RevenueOrdersPeriod p) {
-    final now = DateTime.now();
+    // Use the store's wall-clock + offset so day boundaries match how
+    // WooCommerce evaluates `after`/`before` (otherwise "today" is off by the
+    // device-vs-store timezone gap). Mirrors the analytics chart logic.
+    final now = StoreTime.now();
+    final tz = StoreTime.offsetSuffix;
     final pad = (int v) => v.toString().padLeft(2, '0');
-    final iso = (DateTime d) => "${d.year}-${pad(d.month)}-${pad(d.day)}T00:00:00";
-    
-    final beforeStr = "${now.year}-${pad(now.month)}-${pad(now.day)}T23:59:59";
+    final iso =
+        (DateTime d) => "${d.year}-${pad(d.month)}-${pad(d.day)}T00:00:00$tz";
+
+    final beforeStr =
+        "${now.year}-${pad(now.month)}-${pad(now.day)}T23:59:59$tz";
     String afterStr;
     
     switch (p) {
@@ -70,6 +87,9 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
         break;
       case RevenueOrdersPeriod.lastMonth:
         afterStr = iso(now.subtract(const Duration(days: 30)));
+        break;
+      case RevenueOrdersPeriod.lastYear:
+        afterStr = iso(now.subtract(const Duration(days: 365)));
         break;
     }
     return (afterStr, beforeStr);
@@ -83,9 +103,12 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
     setState(() => _loadingMap[p] = true);
 
     try {
-      final (after, before) = _getRange(p);
+      // Capture the repository before awaiting so we don't touch `context`
+      // across an async gap.
       final repo = context.read<AnalyticsBloc>().repository;
-      
+      await StoreTime.ensureLoaded();
+      final (after, before) = _getRange(p);
+
       final results = await repo.getOrdersByDateRange(
         after: after,
         before: before,
@@ -133,7 +156,7 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
           // ── Header ─────────────────────────────────────────────────────────
           Row(
             children: [
-              Icon(Iconsax.bag_outline, color: AppColors.primary, size: 20),
+              Icon(Icons.shopping_bag_outlined, color: AppColors.primary, size: 20),
               const Gap(8),
               AppReusableText(
                 text: 'Orders',
@@ -145,27 +168,36 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
           ),
           const Gap(16),
 
-          // ── Tab chips ──────────────────────────────────────────────────────
-          Row(
-            children: [
-              _Chip(
-                label: 'Today',
-                selected: _period == RevenueOrdersPeriod.today,
-                onTap: () => setState(() => _period = RevenueOrdersPeriod.today),
-              ),
-              const Gap(8),
-              _Chip(
-                label: 'Last Week',
-                selected: _period == RevenueOrdersPeriod.lastWeek,
-                onTap: () => setState(() => _period = RevenueOrdersPeriod.lastWeek),
-              ),
-              const Gap(8),
-              _Chip(
-                label: 'Last Month',
-                selected: _period == RevenueOrdersPeriod.lastMonth,
-                onTap: () => setState(() => _period = RevenueOrdersPeriod.lastMonth),
-              ),
-            ],
+          // ── Tab chips (single row, scrolls horizontally if cramped) ────────
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _Chip(
+                  label: 'Today',
+                  selected: _period == RevenueOrdersPeriod.today,
+                  onTap: () => _selectPeriod(RevenueOrdersPeriod.today),
+                ),
+                const Gap(8),
+                _Chip(
+                  label: 'Last Week',
+                  selected: _period == RevenueOrdersPeriod.lastWeek,
+                  onTap: () => _selectPeriod(RevenueOrdersPeriod.lastWeek),
+                ),
+                const Gap(8),
+                _Chip(
+                  label: 'Last Month',
+                  selected: _period == RevenueOrdersPeriod.lastMonth,
+                  onTap: () => _selectPeriod(RevenueOrdersPeriod.lastMonth),
+                ),
+                const Gap(8),
+                _Chip(
+                  label: 'Last Year',
+                  selected: _period == RevenueOrdersPeriod.lastYear,
+                  onTap: () => _selectPeriod(RevenueOrdersPeriod.lastYear),
+                ),
+              ],
+            ),
           ),
           const Gap(20),
 
@@ -177,7 +209,7 @@ class _RevenueOrdersCardState extends State<RevenueOrdersCard> {
                 child: Column(
                   children: [
                     Icon(
-                      Iconsax.bag_outline,
+                      Icons.shopping_bag_outlined,
                       color: AppColors.textSecondary.withValues(alpha: 0.35),
                       size: 40,
                     ),

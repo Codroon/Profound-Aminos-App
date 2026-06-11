@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
@@ -91,7 +90,7 @@ class _GorgiasCardState extends State<GorgiasCard> {
             Row(
               children: [
                 Icon(
-                  Iconsax.element_4_outline,
+                  Icons.grid_view_outlined,
                   color: AppColors.primary,
                   size: 24,
                 ),

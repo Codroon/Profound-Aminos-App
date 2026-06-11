@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
@@ -97,7 +96,7 @@ class ShipmentListItem extends StatelessWidget {
                       if (shipment.hasTracking) ...[
                         const Gap(8),
                         Icon(
-                          Iconsax.scan_barcode_outline,
+                          Icons.qr_code_scanner,
                           color: AppColors.primary,
                           size: 14,
                         ),
@@ -140,15 +139,15 @@ class ShipmentListItem extends StatelessWidget {
   IconData _getStatusIcon() {
     switch (shipment.status) {
       case 'pending':
-        return Iconsax.box_time_outline;
+        return Icons.pending_actions;
       case 'in_transit':
-        return Iconsax.truck_fast_outline;
+        return Icons.local_shipping;
       case 'delivered':
-        return Iconsax.box_tick_outline;
+        return Icons.check_circle_outline;
       case 'cancelled':
-        return Iconsax.close_circle_outline;
+        return Icons.cancel_outlined;
       default:
-        return Iconsax.box_outline;
+        return Icons.inventory_2_outlined;
     }
   }
 

@@ -22,6 +22,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  bool _isLoading = true;
   bool _showHome = false;
 
   static const _storage = FlutterSecureStorage(
@@ -42,6 +43,7 @@ class _AppState extends State<App> {
 
       if (wooKey == null || wooKey.isEmpty) {
         debugPrint('[App] No credentials found — showing login.');
+        if (mounted) setState(() => _isLoading = false);
         return;
       }
 
@@ -51,19 +53,32 @@ class _AppState extends State<App> {
 
       debugPrint('[App] Credentials restored — navigating to home.');
       if (mounted) {
-        setState(() => _showHome = true);
+        setState(() {
+          _isLoading = false;
+          _showHome = true;
+        });
       }
     } catch (e) {
       debugPrint('[App] Session restore failed: $e');
       try {
         await _storage.deleteAll().timeout(const Duration(seconds: 2));
       } catch (_) {}
-      // Already showing login, nothing else needed
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeManager.themeModeNotifier.value,
+        home: const _SplashScreen(),
+      );
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<AnalyticsBloc>()),
@@ -87,6 +102,22 @@ class _AppState extends State<App> {
             home: _showHome ? const BottomNavScreen() : const AdminLoginPage(),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
       ),
     );
   }

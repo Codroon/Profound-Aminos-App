@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
 
@@ -182,7 +181,7 @@ class ProductCard extends StatelessWidget {
               // Action Buttons
               IconButton(
                 onPressed: onEdit,
-                icon: Icon(Iconsax.edit_outline),
+                icon: Icon(Icons.edit_outlined),
                 color: AppColors.primary,
                 tooltip: 'Edit Product',
               ),

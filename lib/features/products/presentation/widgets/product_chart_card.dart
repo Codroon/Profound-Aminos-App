@@ -1,27 +1,16 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
+import 'package:woo_management_app/features/products/bloc/product_performance/product_performance_event.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
-
-/// The options for the period dropdown.
-enum ProductPeriod {
-  today('Today'),
-  thisWeek('This Week'),
-  thisMonth('This Month'),
-  thisYear('This Year'),
-  allTime('All Time');
-
-  const ProductPeriod(this.label);
-  final String label;
-}
 
 class ProductChartCard extends StatelessWidget {
   final ProductPeriod period;
   final int soldCount;
   final List<FlSpot> chartSpots;
   final List<String> xLabels;
+  final bool isLoading;
   final ValueChanged<ProductPeriod> onPeriodChanged;
 
   const ProductChartCard({
@@ -30,6 +19,7 @@ class ProductChartCard extends StatelessWidget {
     required this.soldCount,
     required this.chartSpots,
     required this.xLabels,
+    this.isLoading = false,
     required this.onPeriodChanged,
   });
 
@@ -52,7 +42,7 @@ class ProductChartCard extends StatelessWidget {
           // ── Header row ────────────────────────────────────────────────────
           Row(
             children: [
-              Icon(Iconsax.chart_2_outline, color: AppColors.primary, size: 22),
+              Icon(Icons.bar_chart_outlined, color: AppColors.primary, size: 22),
               const Gap(8),
               AppReusableText(
                 text: 'Products',
@@ -87,7 +77,18 @@ class ProductChartCard extends StatelessWidget {
           // ── Chart ─────────────────────────────────────────────────────────
           SizedBox(
             height: 140,
-            child: _hasNoData
+            child: isLoading
+                ? Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  )
+                : _hasNoData
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

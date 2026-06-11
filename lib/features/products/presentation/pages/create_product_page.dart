@@ -1,10 +1,8 @@
 import 'dart:developer' as developer;
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:woo_management_app/core/theme/app_colors.dart';
 import 'package:woo_management_app/widgets/app_reusable_text.dart';
@@ -519,7 +517,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Iconsax.image_outline,
+                    Icons.image_outlined,
                     color: AppColors.primary,
                     size: 24,
                   ),

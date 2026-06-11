@@ -9,9 +9,16 @@ abstract class AnalyticsEvent extends Equatable {
 
 class FetchAnalytics extends AnalyticsEvent {
   final int tabIndex;
-  const FetchAnalytics(this.tabIndex);
+
+  /// Period the revenue/orders chart should open on once the base data
+  /// resolves. Defaults to [RevenuePeriod.thisWeek] (Revenue screen); the
+  /// Orders screen passes [RevenuePeriod.today].
+  final RevenuePeriod initialPeriod;
+
+  const FetchAnalytics(this.tabIndex,
+      {this.initialPeriod = RevenuePeriod.thisWeek});
   @override
-  List<Object?> get props => [tabIndex];
+  List<Object?> get props => [tabIndex, initialPeriod];
 }
 
 class FetchRevenueReport extends AnalyticsEvent {

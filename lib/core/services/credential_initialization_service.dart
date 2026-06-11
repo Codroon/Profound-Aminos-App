@@ -1,5 +1,6 @@
 import '../services/api_credential_service.dart';
 import '../services/crediential_storage_service.dart';
+import '../utils/store_time.dart';
 import '../di/injection_container.dart' as di;
 
 class CredentialInitializationService {
@@ -38,6 +39,11 @@ class CredentialInitializationService {
       
       _isInitialized = true;
       print('[CredentialInit] Credentials loaded and ApiService updated');
+
+      // Warm the store timezone offset so date-windowed reports (revenue /
+      // orders / shipments) query the store's "today", not the device's.
+      // Fire-and-forget: don't block startup; blocs also await it lazily.
+      StoreTime.ensureLoaded();
     } catch (e) {
       print('[CredentialInit] Failed to initialize credentials: $e');
       rethrow;

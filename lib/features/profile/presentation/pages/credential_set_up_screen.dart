@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:woo_management_app/core/utils/motion_toast.dart';
 import 'package:woo_management_app/widgets/custom_button.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,6 +10,9 @@ import '../../bloc/auth_state.dart';
 import '../../../home/presentation/pages/bottom_nav_page.dart';
 import '../../../../core/services/firestore_credentials_service.dart';
 import '../../../../core/services/crediential_storage_service.dart';
+import '../../../../core/services/woocommerce_service.dart';
+import '../../../../core/utils/store_time.dart';
+import '../../../shipping/data/services/woocommerce_shipping_service.dart';
 import '../../../../core/services/push_notification_service.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -199,7 +201,7 @@ class _SetupScreenState extends State<SetupScreen> {
                                         ? null
                                         : () => _downloadFromFirestore(context),
                                 icon: Icon(
-                                  Iconsax.cloud_drizzle_bold,
+                                  Icons.thunderstorm_outlined,
                                   size: 18,
                                 ),
                                 label: Text('Load from Cloud'),
@@ -219,7 +221,7 @@ class _SetupScreenState extends State<SetupScreen> {
                                     isLoading
                                         ? null
                                         : () => _uploadToFirestore(context),
-                                icon: Icon(Iconsax.cloud_add_bold, size: 18),
+                                icon: Icon(Icons.cloud_upload_outlined, size: 18),
                                 label: Text('Save to Cloud'),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.primary,
@@ -311,6 +313,12 @@ class _SetupScreenState extends State<SetupScreen> {
       // Save locally first
       final storage = CredentialStorageService();
       await storage.saveCredentials(creds);
+
+      // Invalidate cached credentials/data so new values take effect now
+      WooCommerceService.clearCredentialCache();
+      WooCommerceShippingService.clearCredentialCache();
+      WooCommerceShippingService.clearStatsCache();
+      StoreTime.reset();
 
       // Then upload to Firestore
       await _firestoreService.uploadCredentialsToFirestore();
